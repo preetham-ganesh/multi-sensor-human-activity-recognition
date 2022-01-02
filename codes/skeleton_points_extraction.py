@@ -170,8 +170,9 @@ def skeleton_point_extractor(n_actions: int,
 
                     # Checks if the skeleton points have already been extracted for the current video file.
                     # If not then the extraction is performed, else moved on to the next video file.
-                    if os.path.exists('../data/processed_data/rgb/{}.csv'.format(data_name)):
+                    if os.path.exists('../data/processed_data/rgb/{}_{}.csv'.format(data_name, skeleton_pose_models[m])):
                         print('Processed file for {} already exists'.format(data_name))
+                        print()
                         continue
 
                     # Imports the video file and extracts the skeleton points.
