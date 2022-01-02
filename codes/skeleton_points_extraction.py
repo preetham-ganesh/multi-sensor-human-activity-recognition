@@ -68,6 +68,7 @@ def exports_processed_data(data: pd.DataFrame,
     directory_path = check_directory_existence('../data', data_version)
     directory_path = check_directory_existence(directory_path, modality)
 
+    # Concatenates file name & directory path, and saves the dataframe as the CSV file.
     file_path = '{}/{}.csv'.format(directory_path, data_name)
     data.to_csv(file_path, index=False)
 
@@ -78,24 +79,49 @@ def per_video_skeleton_point_extractor(video_capture: cv2.VideoCapture,
                                        data_version: str,
                                        modality: str,
                                        data_name: str):
+    """Extracts skeleton points (based on model name) from the video given as input. Exports the extracted skeleton
+    point dataframe into a CSV file.
+
+        Args:
+            video_capture: Video taken as input given by the user or current action, subject and take.
+            skeleton_pose_model: Model name which will be used to import model details.
+            model_location: Location where the pretrained model files are saved.
+            data_version: Current version of the dataframe.
+            modality: Current modality of the dataframe.
+            data_name: Name with which the dataframe should be saved.
+
+        Returns:
+            None.
+    """
+    # Imports model details based on the skeleton_pose_model given as input. Uses the details to import the caffe model.
     proto_file_name, weights_file_name, n_skeleton_points = choose_caffe_model_files(skeleton_pose_model)
     proto_file_location = '{}/{}'.format(model_location, proto_file_name)
     weights_file_location = '{}/{}'.format(model_location, weights_file_name)
     caffe_net = cv2.dnn.readNet(weights_file_location, proto_file_location)
+
+    # Column names for the extracted skeleton points dictionary.
     skeleton_point_column_names = ['frame']
     skeleton_point_column_names += ['rgb_x_{}'.format(i) for i in range(n_skeleton_points)]
     skeleton_point_column_names += ['rgb_y_{}'.format(i) for i in range(n_skeleton_points)]
-    frame_number = 0
     skeleton_point_information = {skeleton_point_column_names[i]: [] for i in range(len(skeleton_point_column_names))}
-    """while True:
+
+    # Iterates across the frames in the loaded video.
+    frame_number = 0
+    while True:
         return_value, frame = video_capture.read()
         extraction_start_time = time.time()
         if not return_value:
             break
+
+        # Resizes the input frame to model input shape, and passes the input to the caffe model.
         model_input = cv2.dnn.blobFromImage(frame, 1/255, (640, 480), (0, 0, 0), swapRB=False, crop=False)
         caffe_net.setInput(model_input)
         model_output = caffe_net.forward()
+
+        # Extracts the height and width from model output.
         model_output_height, model_output_width = model_output.shape[2], model_output.shape[3]
+
+        # Iterates across the extracted skeleton to pre-process and save it in the dictionary.
         skeleton_point_information['frame'].append(frame_number)
         for i in range(n_skeleton_points):
             probability_map = model_output[0, i, :, :]
@@ -105,9 +131,12 @@ def per_video_skeleton_point_extractor(video_capture: cv2.VideoCapture,
             skeleton_point_information['rgb_x_{}'.format(i)].append(int(skeleton_point_x_value))
             skeleton_point_information['rgb_y_{}'.format(i)].append(int(skeleton_point_y_value))
         frame_number += 1
-        print('frame={}, time_taken={} sec'.format(frame_number, round(time.time() - extraction_start_time, 3)))"""
+        print('video_name={}, frame={}, time_taken={} sec'.format(data_name, frame_number,
+                                                                  round(time.time() - extraction_start_time, 3)))
+
+    # Converts the extracted skeleton point dictionary into dataframe, and exports it to CSV file.
     skeleton_point_information_df = pd.DataFrame(skeleton_point_information, columns=skeleton_point_column_names)
-    export_processed_data(skeleton_point_information_df, data_version, modality, data_name)
+    exports_processed_data(skeleton_point_information_df, data_version, modality, data_name)
 
 
 def skeleton_point_extractor(actions: list,
