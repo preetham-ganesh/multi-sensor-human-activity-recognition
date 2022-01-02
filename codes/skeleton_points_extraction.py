@@ -71,6 +71,7 @@ def exports_processed_data(data: pd.DataFrame,
     # Concatenates file name & directory path, and saves the dataframe as the CSV file.
     file_path = '{}/{}.csv'.format(directory_path, data_name)
     data.to_csv(file_path, index=False)
+    print('Saved {} processed file for {} successfully.'.format(modality, data_name))
 
 
 def per_video_skeleton_point_extractor(video_capture: cv2.VideoCapture,
@@ -131,32 +132,69 @@ def per_video_skeleton_point_extractor(video_capture: cv2.VideoCapture,
             skeleton_point_information['rgb_x_{}'.format(i)].append(int(skeleton_point_x_value))
             skeleton_point_information['rgb_y_{}'.format(i)].append(int(skeleton_point_y_value))
         frame_number += 1
-        print('video_name={}, frame={}, time_taken={} sec'.format(data_name, frame_number,
-                                                                  round(time.time() - extraction_start_time, 3)))
+        print('video={}, model={}, frame={}, time_taken={} sec'.format(data_name, skeleton_pose_model, frame_number,
+                                                                       round(time.time() - extraction_start_time, 3)))
 
     # Converts the extracted skeleton point dictionary into dataframe, and exports it to CSV file.
     skeleton_point_information_df = pd.DataFrame(skeleton_point_information, columns=skeleton_point_column_names)
-    exports_processed_data(skeleton_point_information_df, data_version, modality, data_name)
+    exports_processed_data(skeleton_point_information_df, data_version, modality, '{}_{}'.format(data_name,
+                                                                                                 skeleton_pose_model))
 
 
-def skeleton_point_extractor(actions: list,
-                             subjects: list,
-                             takes: list,
+def skeleton_point_extractor(n_actions: int,
+                             n_subjects: int,
+                             n_takes: int,
                              skeleton_pose_models: list):
-    """per_video_skeleton_point_extractor(1, 1, 1, 'coco', '../results/pretrained_model_files', )
+    """Extracts skeleton points for all actions, subjects and takes.
+
+        Args:
+            n_actions: Total number of actions in the original dataset.
+            n_subjects: Total number of subjects in the original dataset.
+            n_takes: Total number of takes in the original dataset.
+            skeleton_pose_models: Model names which will be used to import model details.
+
+        Returns:
+            None.
+
+        Raises:
+            FileNotFoundError: If a particular video file is not found.
     """
     data_location = '../data/original_data/RGB/'
-    video_capture = cv2.VideoCapture('{}/a{}_s{}_t{}_color.avi'.format(data_location, str(1), str(1), str(1)))
-    per_video_skeleton_point_extractor(video_capture, 'coco', '../results/pretrained_model_files', 'processed_data',
-                                       'rgb', 'a{}_s{}_t{}'.format(str(1), str(1), str(1)))
+
+    # Iterates across all actions, subjects and takes in the dataset.
+    for i in range(1, n_actions + 1):
+        for j in range(1, n_subjects + 1):
+            for k in range(1, n_takes + 1):
+                for m in range(len(skeleton_pose_models)):
+                    data_name = 'a{}_s{}_t{}'.format(i, j, k)
+
+                    # Checks if the skeleton points have already been extracted for the current video file.
+                    # If not then the extraction is performed, else moved on to the next video file.
+                    if os.path.exists('../data/processed_data/rgb/{}.csv'.format(data_name)):
+                        print('Processed file for {} already exists'.format(data_name))
+                        continue
+
+                    # Imports the video file and extracts the skeleton points.
+                    try:
+                        video_capture = cv2.VideoCapture('{}/{}_color.avi'.format(data_location, data_name))
+                        per_video_skeleton_point_extractor(video_capture, skeleton_pose_models[m],
+                                                           '../results/pretrained_model_files', 'processed_data', 'rgb',
+                                                           data_name)
+                    except FileNotFoundError:
+                        print('Video file for {} does not exists'.format(data_name))
+                    print()
+
+                    # Makes the systems sleep for 10 seconds.
+                    time.sleep(10)
 
 
 def main():
-    actions = [i for i in range(1, 28)]
-    subjects = [i for i in range(1, 9)]
-    takes = [i for i in range(1, 5)]
+    print()
+    n_actions = 1
+    n_subjects = 1
+    n_takes = 1
     skeleton_pose_models = ['coco', 'mpi']
-    skeleton_point_extractor(actions, subjects, takes, skeleton_pose_models)
+    skeleton_point_extractor(n_actions, n_subjects, n_takes, skeleton_pose_models)
 
 
 if __name__ == '__main__':
