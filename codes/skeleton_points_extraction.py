@@ -49,12 +49,25 @@ def check_directory_existence(directory_path: str,
     return directory_path
 
 
-def export_processed_data(data: pd.DataFrame,
-                          data_version: str,
-                          modality: str,
-                          data_name: str):
+def exports_processed_data(data: pd.DataFrame,
+                           data_version: str,
+                           modality: str,
+                           data_name: str):
+    """Exports processed data into CSV files to the location based data_version and modality.
+
+        Args:
+            data: Pre-processed dataframe for the current action, subject and take.
+            data_version: Current version of the dataframe.
+            modality: Current modality of the dataframe.
+            data_name: Name with which the dataframe should be saved.
+
+        Returns:
+            None.
+    """
+    # Checks for the existence of the directory path
     directory_path = check_directory_existence('../data', data_version)
     directory_path = check_directory_existence(directory_path, modality)
+
     file_path = '{}/{}.csv'.format(directory_path, data_name)
     data.to_csv(file_path, index=False)
 
