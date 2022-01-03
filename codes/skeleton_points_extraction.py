@@ -139,6 +139,7 @@ def per_video_skeleton_point_extractor(video_capture: cv2.VideoCapture,
     skeleton_point_information_df = pd.DataFrame(skeleton_point_information, columns=skeleton_point_column_names)
     exports_processed_data(skeleton_point_information_df, data_version, modality, '{}_{}'.format(data_name,
                                                                                                  skeleton_pose_model))
+    video_capture.release()
 
 
 def skeleton_point_extractor(n_actions: int,
@@ -159,7 +160,8 @@ def skeleton_point_extractor(n_actions: int,
         Raises:
             FileNotFoundError: If a particular video file is not found.
     """
-    data_location = '../data/original_data/RGB/'
+    data_version = 'processed_data'
+    modality = 'rgb'
 
     # Iterates across all actions, subjects and takes in the dataset.
     for i in range(1, n_actions + 1):
@@ -170,30 +172,32 @@ def skeleton_point_extractor(n_actions: int,
 
                     # Checks if the skeleton points have already been extracted for the current video file.
                     # If not then the extraction is performed, else moved on to the next video file.
-                    if os.path.exists('../data/processed_data/rgb/{}_{}.csv'.format(data_name, skeleton_pose_models[m])):
-                        print('Processed file for {} already exists'.format(data_name))
+                    if os.path.exists('../data/{}/{}/{}_{}.csv'.format(data_version, modality, data_name,
+                                                                       skeleton_pose_models[m])):
+                        print('Processed file for {}_{} already exists'.format(data_name, skeleton_pose_models[m]))
                         print()
                         continue
 
                     # Imports the video file and extracts the skeleton points.
                     try:
-                        video_capture = cv2.VideoCapture('{}/{}_color.avi'.format(data_location, data_name))
+                        video_capture = cv2.VideoCapture('../data/original_data/{}/{}_color.avi'.format(modality.upper(),
+                                                                                                        data_name))
                         per_video_skeleton_point_extractor(video_capture, skeleton_pose_models[m],
                                                            '../results/pretrained_model_files', 'processed_data', 'rgb',
                                                            data_name)
                     except FileNotFoundError:
-                        print('Video file for {} does not exists'.format(data_name))
+                        print('Video file for {}_{} does not exists'.format(data_name, skeleton_pose_models[m]))
                     print()
 
-                    # Makes the systems sleep for 10 seconds.
+                    # Makes the system sleep for 10 seconds.
                     time.sleep(10)
 
 
 def main():
     print()
-    n_actions = 1
-    n_subjects = 1
-    n_takes = 1
+    n_actions = 27
+    n_subjects = 8
+    n_takes = 4
     skeleton_pose_models = ['coco', 'mpi']
     skeleton_point_extractor(n_actions, n_subjects, n_takes, skeleton_pose_models)
 
