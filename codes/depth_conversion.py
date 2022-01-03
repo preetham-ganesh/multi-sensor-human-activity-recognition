@@ -17,11 +17,11 @@ def per_video_depth_converter(depth_file: np.ndarray,
                               modality: str,
                               data_name: str,
                               skeleton_point_information: pd.DataFrame):
-    """Converts depth information (based on model name) from the matlab file given as input. Adds the converted
+    """Converts depth information (based on model name) from the MATLAB file given as input. Adds the converted
     information to the existing skeleton point information and exports the dataframe into a CSV file.
 
         Args:
-            depth_file: Matlab depth file for the current video.
+            depth_file: MATLAB depth file for the current video.
             skeleton_pose_model: Model name which will be used to import model details.
             data_version: Current version of the dataframe.
             modality: Current modality of the dataframe.
@@ -67,7 +67,7 @@ def depth_converter(n_actions: int,
                     n_subjects: int,
                     n_takes: int,
                     skeleton_pose_models: list):
-    """Converts Matlab depth information and adds them to the skeleton point information for all actions, subjects, and
+    """Converts MATLAB depth information and adds them to the skeleton point information for all actions, subjects, and
     takes.
 
         Args:
