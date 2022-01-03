@@ -103,7 +103,7 @@ def depth_converter(n_actions: int,
                         per_video_depth_converter(depth_file['d_depth'], skeleton_pose_models[m], data_version,
                                                   modality, data_name, skeleton_point_information)
                     except FileNotFoundError:
-                        print('Video file for {} does not exists'.format(data_name))
+                        print('Video file for {}_{} does not exists'.format(data_name, skeleton_pose_models[m]))
                     print()
 
 
