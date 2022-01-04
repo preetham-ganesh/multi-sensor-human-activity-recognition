@@ -135,11 +135,16 @@ def per_video_skeleton_point_extractor(video_capture: cv2.VideoCapture,
         print('video={}, model={}, frame={}, time_taken={} sec'.format(data_name, skeleton_pose_model, frame_number,
                                                                        round(time.time() - extraction_start_time, 3)))
 
+    video_capture.release()
+
     # Converts the extracted skeleton point dictionary into dataframe, and exports it to CSV file.
     skeleton_point_information_df = pd.DataFrame(skeleton_point_information, columns=skeleton_point_column_names)
-    exports_processed_data(skeleton_point_information_df, data_version, modality, '{}_{}'.format(data_name,
-                                                                                                 skeleton_pose_model))
-    video_capture.release()
+
+    if len(skeleton_point_information_df) != 0:
+        exports_processed_data(skeleton_point_information_df, data_version, modality,
+                               '{}_{}'.format(data_name, skeleton_pose_model))
+    else:
+        print('Video file for {}_{} cannot be processed.'.format(data_name, skeleton_pose_model))
 
 
 def skeleton_point_extractor(n_actions: int,
@@ -170,21 +175,19 @@ def skeleton_point_extractor(n_actions: int,
                 for m in range(len(skeleton_pose_models)):
                     data_name = 'a{}_s{}_t{}'.format(i, j, k)
 
-                    # Checks if the skeleton points have already been extracted for the current video file.
-                    # If not then the extraction is performed, else moved on to the next video file.
-                    if os.path.exists('../data/{}/{}/{}_{}.csv'.format(data_version, modality, data_name,
-                                                                       skeleton_pose_models[m])):
-                        print('Processed file for {}_{} already exists'.format(data_name, skeleton_pose_models[m]))
-                        print()
-                        continue
-
                     # Imports the video file and extracts the skeleton points.
                     try:
                         video_capture = cv2.VideoCapture('../data/original_data/{}/{}_color.avi'.format(modality.upper(),
                                                                                                         data_name))
-                        per_video_skeleton_point_extractor(video_capture, skeleton_pose_models[m],
-                                                           '../results/pretrained_model_files', 'processed_data', 'rgb',
-                                                           data_name)
+                        # Checks if the skeleton points have already been extracted for the current video file.
+                        # If not then the extraction is performed, else moved on to the next video file.
+                        if os.path.exists('../data/{}/{}/{}_{}.csv'.format(data_version, modality, data_name,
+                                                                           skeleton_pose_models[m])):
+                            print('Processed file for {}_{} already exists'.format(data_name, skeleton_pose_models[m]))
+                        else:
+                            per_video_skeleton_point_extractor(video_capture, skeleton_pose_models[m],
+                                                               '../results/pretrained_model_files', 'processed_data',
+                                                               'rgb', data_name)
                     except FileNotFoundError:
                         print('Video file for {}_{} does not exists'.format(data_name, skeleton_pose_models[m]))
                     print()
