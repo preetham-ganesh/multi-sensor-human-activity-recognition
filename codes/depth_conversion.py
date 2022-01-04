@@ -3,7 +3,6 @@
 # email = 'preetham.ganesh2015@gmail.com'
 
 
-import cv2
 import pandas as pd
 import numpy as np
 from scipy.io import loadmat
@@ -42,21 +41,32 @@ def per_video_depth_converter(depth_file: np.ndarray,
 
         # Filters current frame's depth information and resizes it.
         frame_depth = depth_file[:, :, i]
-        frame_depth_resized = cv2.resize(frame_depth, dsize=(480, 640))
 
         # Filter current frame's skeleton point information
         current_frame_skeleton_points = skeleton_point_information[skeleton_point_information['frame'] == i]
 
         # Iterates across the skeleton points to extract depth information.
         for j in range(n_skeleton_points):
-            skeleton_point_x_value = int(current_frame_skeleton_points['rgb_x_{}'.format(j)])
-            skeleton_point_y_value = int(current_frame_skeleton_points['rgb_y_{}'.format(j)])
-            current_skeleton_point_depth_value = frame_depth_resized[skeleton_point_x_value][skeleton_point_y_value]
-            depth_information['rgb_z_{}'.format(j)].append(current_skeleton_point_depth_value)
+            skeleton_point_x_value = int(current_frame_skeleton_points['rgb_x_{}'.format(j)]) // 2
+            skeleton_point_y_value = int(current_frame_skeleton_points['rgb_y_{}'.format(j)]) // 2
+            current_skeleton_point_depth_value = frame_depth[skeleton_point_y_value][skeleton_point_x_value]
+            depth_information['rgb_z_{}'.format(j)].append(current_skeleton_point_depth_value / 100)
 
-    # Iterates across the depth information to add them to current version of skeleton point information
+    # Iterates across the depth information, imputes mean values if there are any zeros, and adds them to current
+    # version of skeleton point information
     for i in range(n_skeleton_points):
-        skeleton_point_information['rgb_z_{}'.format(i)] = depth_information['rgb_z_{}'.format(i)]
+        current_depth_information = depth_information['rgb_z_{}'.format(i)]
+        n_non_zeros = len(current_depth_information) - current_depth_information.count(0)
+
+        # In some cases the depth camera would have registered depth as 0 in all the frames for a particular skeleton
+        # point
+        if n_non_zeros == 0:
+            skeleton_point_information['rgb_z_{}'.format(i)] = current_depth_information
+        else:
+            imputed_depth_information = [round(sum(current_depth_information) / n_non_zeros, 2)
+                                         if current_depth_information[j] == 0 else current_depth_information[j] for j in
+                                         range(len(current_depth_information))]
+            skeleton_point_information['rgb_z_{}'.format(i)] = imputed_depth_information
 
     # Exports the updated version of the skeleton point information into a CSV file.
     exports_processed_data(skeleton_point_information, data_version, modality, '{}_{}'.format(data_name,
@@ -103,7 +113,7 @@ def depth_converter(n_actions: int,
                         per_video_depth_converter(depth_file['d_depth'], skeleton_pose_models[m], data_version,
                                                   modality, data_name, skeleton_point_information)
                     except FileNotFoundError:
-                        print('Video file for {}_{} does not exists'.format(data_name, skeleton_pose_models[m]))
+                        print('Video file for {}_{} does not exist.'.format(data_name, skeleton_pose_models[m]))
                     print()
 
 
