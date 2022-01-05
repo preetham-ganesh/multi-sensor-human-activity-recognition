@@ -44,9 +44,8 @@ def per_video_inertial_converter(inertial_file: np.ndarray,
         current_inertial_moving_average = []
 
         # Iterates across the frames of current inertial sensor information and computes moving average.
-        for j in range(0, inertial_file.shape[0], 7):
-            current_inertial_moving_average.append(round(float(np.mean(current_inertial[j: j + 4])), 5))
-            current_inertial_moving_average.append(round(float(np.mean(current_inertial[j + 3: j + 7])), 5))
+        for j in range(0, inertial_file.shape[0], 3):
+            current_inertial_moving_average.append(round(float(np.mean(current_inertial[j: j + 3])), 5))
 
         # Adds the moving average information for the current inertial sensor information to the skeleton point
         # information
