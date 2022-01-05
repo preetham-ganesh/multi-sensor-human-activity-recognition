@@ -62,6 +62,21 @@ def inertial_converter(n_actions: int,
                        n_subjects: int,
                        n_takes: int,
                        skeleton_pose_models: list):
+    """Converts MATLAB inertial information and adds them to the skeleton point information for all actions, subjects,
+    and takes.
+
+        Args:
+            n_actions: Total number of actions in the original dataset.
+            n_subjects: Total number of subjects in the original dataset.
+            n_takes: Total number of takes in the original dataset.
+            skeleton_pose_models: Model names which will be used to import model details.
+
+        Returns:
+            None.
+
+        Raises:
+            FileNotFoundError: If a particular video file is not found.
+    """
     modality = 'inertial'
     data_version = 'processed_data'
 
@@ -71,25 +86,29 @@ def inertial_converter(n_actions: int,
             for k in range(1, n_takes + 1):
                 for m in range(len(skeleton_pose_models)):
                     data_name = 'a{}_s{}_t{}'.format(i, j, k)
-                    inertial_file = loadmat(
-                        '../data/original_data/{}/{}_{}.mat'.format(modality.title(), data_name, modality))
-                    skeleton_file = pd.read_csv('../data/processed_data/{}/{}_{}.csv'.format('rgb', data_name,
-                                                                                             skeleton_pose_models[m]))
-                    #print(data_name, inertial_file['d_iner'].shape[0], len(skeleton_file),
-                    #      inertial_file['d_iner'].shape[0] / len(skeleton_file))
-                    per_video_inertial_converter(inertial_file['d_iner'], skeleton_pose_models[m], data_version, modality,
-                                                 data_name, skeleton_file)
+
+                    # Imports MATLAB inertial file and the skeleton point information for the current action, subject &
+                    # take.
+                    try:
+                        inertial_file = loadmat('../data/original_data/{}/{}_{}.mat'.format(modality.title(), data_name,
+                                                                                            modality))
+                        skeleton_file = pd.read_csv('../data/processed_data/{}/{}_{}.csv'.format('rgb', data_name,
+                                                                                                 skeleton_pose_models[m]))
+                        per_video_inertial_converter(inertial_file['d_iner'], skeleton_pose_models[m], data_version,
+                                                     modality, data_name, skeleton_file)
+                    except FileNotFoundError:
+                        print('Video file for {}_{} does not exist.'.format(data_name, skeleton_pose_models[m]))
+                    print()
 
 
 def main():
     print()
-    n_actions = 1
-    n_subjects = 1
-    n_takes = 1
+    n_actions = 27
+    n_subjects = 8
+    n_takes = 4
     skeleton_pose_models = ['coco', 'mpi']
     inertial_converter(n_actions, n_subjects, n_takes, skeleton_pose_models)
 
 
 if __name__ == '__main__':
     main()
-
