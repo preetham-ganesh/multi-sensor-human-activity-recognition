@@ -3,7 +3,6 @@
 # email = 'preetham.ganesh2015@gmail.com'
 
 import pandas as pd
-import numpy as np
 from skeleton_points_extraction import choose_caffe_model_files
 from skeleton_points_extraction import exports_processed_data
 
