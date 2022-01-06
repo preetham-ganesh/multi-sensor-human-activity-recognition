@@ -31,7 +31,10 @@ def min_max_normalizer(processed_sensor_values: list):
 
 
 def per_video_data_normalizer(skeleton_point_information: pd.DataFrame,
-                              skeleton_pose_model: str):
+                              skeleton_pose_model: str,
+                              data_version: str,
+                              modality: str,
+                              data_name: str):
     """Performs min-max normalization on the skeleton point information for the current video, and filters the dataframe
     columns based on the modality. Exports the dataframe into a CSV file.
 
@@ -39,40 +42,27 @@ def per_video_data_normalizer(skeleton_point_information: pd.DataFrame,
             skeleton_point_information: Current version of skeleton point information for the current video.
             skeleton_pose_model: Model name which will be used to import model details.
             data_version: Current version of the dataframe.
+            modality: Current modality of the dataframe.
             data_name: Name with which the dataframe should be saved.
 
         Returns:
-            Min-max normalized version of the skeleton point information
+            None
     """
     # Imports number of skeleton points model based on the skeleton_pose_model given as input.
     _, _, n_skeleton_points = choose_caffe_model_files(skeleton_pose_model)
 
     # Column names for the converted skeleton point information.
-    skeleton_point_column_names = ['frame']
-    skeleton_point_column_names += ['rgb_x_{}'.format(i) for i in range(n_skeleton_points)]
-    skeleton_point_column_names += ['rgb_y_{}'.format(i) for i in range(n_skeleton_points)]
-    skeleton_point_column_names += ['rgb_z_{}'.format(i) for i in range(n_skeleton_points)]
-    skeleton_point_column_names += ['acc_x', 'acc_y', 'acc_z', 'gyr_x', 'gyr_y', 'gyr_z']
+    skeleton_point_column_names = list(skeleton_point_information.columns)
 
     # Iterates across skeleton point column names for performing data normalization
     for i in range(len(skeleton_point_column_names)):
-        skeleton_point_information[skeleton_point_column_names[i]] = min_max_normalizer(
-            skeleton_point_information[skeleton_point_column_names[i]])
+        if skeleton_point_column_names[i] != 'frame':
+            skeleton_point_information[skeleton_point_column_names[i]] = min_max_normalizer(
+                skeleton_point_information[skeleton_point_column_names[i]])
 
-    return skeleton_point_information
-
-
-def filters_data_for_modalities(skeleton_point_information: pd.DataFrame):
-
-    # Filters data for the RGB
-    rgb_skeleton_point_information = skeleton_point_information[skeleton_point_column_names[:n_skeleton_points * 2]]
-    depth_skeleton_point_information = skeleton_point_information[skeleton_point_column_names[:n_skeleton_points * 3]]
-    exports_processed_data(rgb_skeleton_point_information, data_version, 'rgb',
-                           '{}_{}'.format(data_name, skeleton_pose_model))
-    exports_processed_data(depth_skeleton_point_information, data_version, 'depth',
-                           '{}_{}'.format(data_name, skeleton_pose_model))
-    exports_processed_data(skeleton_point_information, data_version, 'depth', '{}_{}'.format(data_name,
-                                                                                             skeleton_pose_model))
+    # Exports the updated version of the skeleton point information into a CSV file.
+    exports_processed_data(skeleton_point_information, data_version, modality, '{}_{}'.format(data_name,
+                                                                                              skeleton_pose_model))
 
 
 def data_normalizer(n_actions: int,
@@ -88,7 +78,8 @@ def main():
     n_subjects = 8
     n_takes = 4
     skeleton_pose_models = ['coco', 'mpi']
-    data_normalizer(n_actions, n_subjects, n_takes, skeleton_pose_models)
+    modalities = ['rgb', 'depth', 'inertial']
+    data_normalizer(n_actions, n_subjects, n_takes, skeleton_pose_models, modalities)
 
 
 if __name__ == '__main__':
