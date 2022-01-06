@@ -33,8 +33,10 @@ def per_video_inertial_converter(inertial_file: np.ndarray,
     # Imports number of skeleton points model based on the skeleton_pose_model given as input.
     _, _, n_skeleton_points = choose_caffe_model_files(skeleton_pose_model)
 
-    # Column names for the converted inertial information.
+    # Column names for the converted inertial information dictionary.
     inertial_columns = ['acc_x', 'acc_y', 'acc_z', 'gyr_x', 'gyr_y', 'gyr_z']
+    inertial_information = {inertial_columns[i]: [] for i in range(len(inertial_columns))}
+    inertial_information['frame'] = [i for i in range(len(skeleton_point_information))]
 
     # Iterates across the column names for inertial sensors information.
     for i in range(len(inertial_columns)):
@@ -49,12 +51,14 @@ def per_video_inertial_converter(inertial_file: np.ndarray,
 
         # Adds the moving average information for the current inertial sensor information to the skeleton point
         # information
-        skeleton_point_information[inertial_columns[i]] = current_inertial_moving_average[:len(
-            skeleton_point_information)]
+        inertial_information[inertial_columns[i]] = current_inertial_moving_average[:len(skeleton_point_information)]
+
+    # Converts inertial information dictionary into a pandas dataframe.
+    inertial_information_df = pd.DataFrame(inertial_information, columns=['frame'] + inertial_columns)
 
     # Exports the updated version of the skeleton point information into a CSV file.
-    exports_processed_data(skeleton_point_information, data_version, modality, '{}_{}'.format(data_name,
-                                                                                              skeleton_pose_model))
+    exports_processed_data(inertial_information_df, data_version, modality, '{}_{}'.format(data_name,
+                                                                                           skeleton_pose_model))
 
 
 def inertial_converter(n_actions: int,
@@ -91,7 +95,7 @@ def inertial_converter(n_actions: int,
                     try:
                         inertial_file = loadmat('../data/original_data/{}/{}_{}.mat'.format(modality.title(), data_name,
                                                                                             modality))
-                        skeleton_file = pd.read_csv('../data/processed_data/{}/{}_{}.csv'.format('rgb', data_name,
+                        skeleton_file = pd.read_csv('../data/processed_data/{}/{}_{}.csv'.format('depth', data_name,
                                                                                                  skeleton_pose_models[m]))
                         per_video_inertial_converter(inertial_file['d_iner'], skeleton_pose_models[m], data_version,
                                                      modality, data_name, skeleton_file)
