@@ -95,8 +95,8 @@ def inertial_converter(n_actions: int,
                     try:
                         inertial_file = loadmat('../data/original_data/{}/{}_{}.mat'.format(modality.title(), data_name,
                                                                                             modality))
-                        skeleton_file = pd.read_csv('../data/processed_data/{}/{}_{}.csv'.format('depth', data_name,
-                                                                                                 skeleton_pose_models[m]))
+                        skeleton_file = pd.read_csv('../data/{}/{}/{}_{}.csv'.format(data_version, 'depth', data_name,
+                                                                                     skeleton_pose_models[m]))
                         per_video_inertial_converter(inertial_file['d_iner'], skeleton_pose_models[m], data_version,
                                                      modality, data_name, skeleton_file)
                     except FileNotFoundError:
