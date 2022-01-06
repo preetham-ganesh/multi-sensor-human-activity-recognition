@@ -35,6 +35,7 @@ def per_video_depth_converter(depth_file: np.ndarray,
 
     # Column names for the converted depth information dictionary.
     depth_information = {'rgb_z_{}'.format(i): [] for i in range(n_skeleton_points)}
+    depth_information['frame'] = [i for i in range(len(skeleton_point_information))]
 
     # Iterates across frames to convert depth information
     for i in range(len(skeleton_point_information)):
@@ -60,17 +61,18 @@ def per_video_depth_converter(depth_file: np.ndarray,
 
         # In some cases the depth camera would have registered depth as 0 in all the frames for a particular skeleton
         # point
-        if n_non_zeros == 0:
-            skeleton_point_information['rgb_z_{}'.format(i)] = current_depth_information
-        else:
+        if n_non_zeros != 0:
             imputed_depth_information = [round(sum(current_depth_information) / n_non_zeros, 2)
                                          if current_depth_information[j] == 0 else current_depth_information[j] for j in
                                          range(len(current_depth_information))]
-            skeleton_point_information['rgb_z_{}'.format(i)] = imputed_depth_information
+            depth_information['rgb_z_{}'.format(i)] = imputed_depth_information
+
+    # Converts depth information dictionary into a pandas dataframe.
+    depth_information_df = pd.DataFrame(depth_information, columns=['frame'] + ['rgb_z_{}'.format(i) for i in
+                                                                                range(n_skeleton_points)])
 
     # Exports the updated version of the skeleton point information into a CSV file.
-    exports_processed_data(skeleton_point_information, data_version, modality, '{}_{}'.format(data_name,
-                                                                                              skeleton_pose_model))
+    exports_processed_data(depth_information_df, data_version, modality, '{}_{}'.format(data_name, skeleton_pose_model))
 
 
 def depth_converter(n_actions: int,
