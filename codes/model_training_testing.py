@@ -3,8 +3,14 @@
 # email = 'preetham.ganesh2015@gmail.com'
 
 
+import numpy as np
 import pandas as pd
 import itertools
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import balanced_accuracy_score
+from sklearn.metrics import precision_score
+from sklearn.metrics import recall_score
+from sklearn.metrics import f1_score
 from skeleton_points_extraction import choose_caffe_model_files
 
 
@@ -52,8 +58,7 @@ def data_combiner(n_actions: int,
                                  information.
 
         Returns:
-            Pandas dataframe which contains the combined skeleton point information for all actions, all takes, given
-            list of subject ids and given list of modalities.
+            A tuple containing 2 numpy ndarrays for the input and target datasets
     """
     combined_modality_skeleton_information = pd.DataFrame()
 
@@ -95,7 +100,30 @@ def data_combiner(n_actions: int,
                 # point information
                 combined_modality_skeleton_information = combined_modality_skeleton_information.append(
                     current_data_name_modality_information)
-    return combined_modality_skeleton_information
+
+    skeleton_data_input = combined_modality_skeleton_information.drop(columns=['action'])
+    skeleton_data_target = combined_modality_skeleton_information['action']
+
+    return np.array(skeleton_data_input), np.array(skeleton_data_target)
+
+
+def calculate_metrics(actual_values: np.ndarray,
+                      predicted_values: np.ndarray):
+    """Using actual_values, predicted_values calculates metrics such as accuracy, balanced accuracy, precision, recall,
+    and f1 scores.
+
+        Args:
+            actual_values: Actual action labels in the dataset
+            predicted_values: Action labels predicted by the currently trained model
+
+        Returns:
+            Dictionary contains keys as score names and values as scores which are floating point values.
+    """
+    return {'accuracy_score': round(accuracy_score(actual_values, predicted_values) * 100, 3),
+            'balanced_accuracy_score': round(balanced_accuracy_score(actual_values, predicted_values) * 100, 3),
+            'precision_score': round(precision_score(actual_values, predicted_values) * 100, 3),
+            'recall_score': round(recall_score(actual_values, predicted_values) * 100, 3),
+            'f1_score': round(f1_score(actual_values, predicted_values) * 100, 3)}
 
 
 def model_training_testing(n_actions: int,
@@ -107,15 +135,17 @@ def model_training_testing(n_actions: int,
     train_subject_ids = [i for i in range(1, 7)]
     validation_subject_ids = [7]
     test_subject_ids = [8]
-    train_skeleton_point_information = data_combiner(n_actions, train_subject_ids, n_takes, modality_combinations[4],
-                                                     skeleton_pose_models[0])
-    validation_skeleton_point_information = data_combiner(n_actions, validation_subject_ids, n_takes,
-                                                          modality_combinations[4], skeleton_pose_models[0])
-    test_skeleton_point_information = data_combiner(n_actions, test_subject_ids, n_takes, modality_combinations[4],
-                                                    skeleton_pose_models[0])
-    print(len(train_skeleton_point_information), len(validation_skeleton_point_information),
-          len(test_skeleton_point_information))
-    #data_combiner(n_actions, train_subject_ids, n_takes, modality_combinations, skeleton_pose_models[0)
+    train_skeleton_input_data, train_skeleton_target_data = data_combiner(n_actions, train_subject_ids, n_takes,
+                                                                          modality_combinations[4],
+                                                                          skeleton_pose_models[0])
+    validation_skeleton_input_data, validation_skeleton_target_data = data_combiner(n_actions, validation_subject_ids,
+                                                                                    n_takes, modality_combinations[4],
+                                                                                    skeleton_pose_models[0])
+    test_skeleton_input_data, test_skeleton_target_data = data_combiner(n_actions, test_subject_ids, n_takes,
+                                                                        modality_combinations[4],
+                                                                        skeleton_pose_models[0])
+    print(train_skeleton_input_data.shape, train_skeleton_target_data.shape, validation_skeleton_input_data.shape,
+          validation_skeleton_target_data.shape, test_skeleton_input_data.shape, test_skeleton_target_data.shape)
 
 
 def main():
