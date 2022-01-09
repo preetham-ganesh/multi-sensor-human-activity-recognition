@@ -6,12 +6,23 @@
 import numpy as np
 import pandas as pd
 import itertools
+import logging
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import balanced_accuracy_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.model_selection import ParameterGrid
 from skeleton_points_extraction import choose_caffe_model_files
+
+
+logging.getLogger('sklearn').setLevel(logging.FATAL)
 
 
 def list_combinations_generator(modalities: list):
@@ -58,7 +69,8 @@ def data_combiner(n_actions: int,
                                  information.
 
         Returns:
-            A tuple containing 2 numpy ndarrays for the input and target datasets
+            A pandas dataframe which contains combined skeleton point information for all actions, all takes, given list
+            of subject ids and given list of modalities.
     """
     combined_modality_skeleton_information = pd.DataFrame()
 
@@ -89,6 +101,10 @@ def data_combiner(n_actions: int,
                                                                           current_skeleton_point_information,
                                                                           on='frame', how='outer')
 
+                # Adds data_name to the imported skeleton point information.
+                current_data_name_modality_information['data_name'] = [data_name for _ in range(len(
+                    current_data_name_modality_information))]
+
                 # Removes frame column from the imported skeleton point information.
                 current_data_name_modality_information = current_data_name_modality_information.drop(columns=['frame'])
 
@@ -101,10 +117,7 @@ def data_combiner(n_actions: int,
                 combined_modality_skeleton_information = combined_modality_skeleton_information.append(
                     current_data_name_modality_information)
 
-    skeleton_data_input = combined_modality_skeleton_information.drop(columns=['action'])
-    skeleton_data_target = combined_modality_skeleton_information['action']
-
-    return np.array(skeleton_data_input), np.array(skeleton_data_target)
+    return combined_modality_skeleton_information
 
 
 def calculate_metrics(actual_values: np.ndarray,
@@ -121,9 +134,65 @@ def calculate_metrics(actual_values: np.ndarray,
     """
     return {'accuracy_score': round(accuracy_score(actual_values, predicted_values) * 100, 3),
             'balanced_accuracy_score': round(balanced_accuracy_score(actual_values, predicted_values) * 100, 3),
-            'precision_score': round(precision_score(actual_values, predicted_values) * 100, 3),
-            'recall_score': round(recall_score(actual_values, predicted_values) * 100, 3),
-            'f1_score': round(f1_score(actual_values, predicted_values) * 100, 3)}
+            'precision_score': round(precision_score(actual_values, predicted_values, average='weighted',
+                                                     labels=np.unique(predicted_values)) * 100, 3),
+            'recall_score': round(recall_score(actual_values, predicted_values, average='weighted',
+                                               labels=np.unique(predicted_values)) * 100, 3),
+            'f1_score': round(f1_score(actual_values, predicted_values, average='weighted',
+                                       labels=np.unique(predicted_values)) * 100, 3)}
+
+
+def retrieve_hyperparameters(current_model_name: str):
+    """Based on the current_model_name returns a list of hyperparameters used for optimizing the model (if necessary).
+
+        Args:
+            current_model_name: Name of the model currently expected to be trained
+
+        Returns:
+            A dictionary containing the hyperparameter name and the values that will be used to optimize the model
+    """
+    # For logistic_regression, the hyperparameter tuned is penalty.
+    if current_model_name == 'logistic_regression':
+        parameters = {'penalty': ['l1', 'l2', 'elasticnet', 'none']}
+
+    # For gaussian_naive_bayes, none of the hyperparameters are tuned.
+    elif current_model_name == 'gaussian_naive_bayes':
+        parameters = {'None': ['None']}
+
+    # For support_vector_classifier, the hyperparameter tuned is kernel.
+    elif current_model_name == 'support_vector_classifier':
+        parameters = {'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
+
+    # For decision_tree_classifier, the hyperparameters tuned are criterion, splitter, and max_depth.
+    elif current_model_name == 'decision_tree_classifier':
+        parameters = {'criterion': ['gini', 'entropy'], 'splitter': ['best', 'random'], 'max_depth': [2, 3, 4, 5, 6, 7]}
+
+    # For random_forest_classifier or extra_trees_classifier, the hyperparameters tuned are n_estimators, criterion, and
+    # max_depth
+    elif current_model_name == 'random_forest_classifier' or current_model_name == 'extra_trees_classifier':
+        parameters = {'n_estimators': [i * 10 for i in range(2, 11, 2)], 'criterion': ['gini', 'entropy'],
+                      'max_depth': [2, 3, 4, 5, 6, 7]}
+
+    # For gradient_boosting_classifier, the hyperparameters tuned are loss, n_estimators, criterion, and max_depth.
+    else:
+        parameters = {'loss': ['deviance', 'exponential'], 'n_estimators': [i * 10 for i in range(2, 11, 2)],
+                      'criterion': ['friedman_mse', 'squared_error', 'mse', 'mae'], 'max_depth': [2, 3, 4, 5, 6, 7]}
+
+    return parameters
+
+
+def split_data_input_target(skeleton_data: pd.DataFrame):
+    """Splits skeleton_data into input and target datasets by filtering / selecting certain columns.
+
+        Args:
+            skeleton_data: Train / Validation / Test dataset used to split / filter certain columns.
+
+        Returns:
+            A tuple containing 2 numpy ndarrays for the input and target datasets.
+    """
+    skeleton_data_input = skeleton_data.drop(columns=['frame', 'data_name', 'action'])
+    skeleton_data_target = skeleton_data['action']
+    return np.array(skeleton_data_input), np.array(skeleton_data_target)
 
 
 def model_training_testing(n_actions: int,
@@ -132,20 +201,38 @@ def model_training_testing(n_actions: int,
                            skeleton_pose_models: list,
                            modalities: list):
     modality_combinations = list_combinations_generator(modalities)
-    train_subject_ids = [i for i in range(1, 7)]
-    validation_subject_ids = [7]
-    test_subject_ids = [8]
-    train_skeleton_input_data, train_skeleton_target_data = data_combiner(n_actions, train_subject_ids, n_takes,
-                                                                          modality_combinations[4],
+    train_subject_ids = [i for i in range(1, n_subjects - 1)]
+    validation_subject_ids = [n_subjects - 1]
+    test_subject_ids = [n_subjects]
+    """train_skeleton_input_data, train_skeleton_target_data = data_combiner(n_actions, train_subject_ids, n_takes,
+                                                                          modality_combinations[0],
                                                                           skeleton_pose_models[0])
     validation_skeleton_input_data, validation_skeleton_target_data = data_combiner(n_actions, validation_subject_ids,
-                                                                                    n_takes, modality_combinations[4],
+                                                                                    n_takes, modality_combinations[0],
                                                                                     skeleton_pose_models[0])
     test_skeleton_input_data, test_skeleton_target_data = data_combiner(n_actions, test_subject_ids, n_takes,
-                                                                        modality_combinations[4],
+                                                                        modality_combinations[0],
                                                                         skeleton_pose_models[0])
     print(train_skeleton_input_data.shape, train_skeleton_target_data.shape, validation_skeleton_input_data.shape,
           validation_skeleton_target_data.shape, test_skeleton_input_data.shape, test_skeleton_target_data.shape)
+    model = DecisionTreeClassifier()
+    model.fit(train_skeleton_input_data, train_skeleton_target_data)
+    train_skeleton_predicted_data = model.predict(train_skeleton_input_data)
+    validation_skeleton_predicted_data = model.predict(validation_skeleton_input_data)
+    test_skeleton_predicted_data = model.predict(test_skeleton_input_data)
+    print(calculate_metrics(train_skeleton_target_data, train_skeleton_predicted_data))
+    print(calculate_metrics(validation_skeleton_target_data, validation_skeleton_predicted_data))
+    print(calculate_metrics(test_skeleton_target_data, test_skeleton_predicted_data))
+    print(validation_skeleton_predicted_data)
+    print(validation_skeleton_target_data)"""
+    train_skeleton_information = data_combiner(n_actions, train_subject_ids, n_takes, modality_combinations[-1],
+                                               skeleton_pose_models[1])
+    validation_skeleton_information = data_combiner(n_actions, validation_subject_ids, n_takes,
+                                                    modality_combinations[-1], skeleton_pose_models[1])
+    test_skeleton_information = data_combiner(n_actions, test_subject_ids, n_takes, modality_combinations[-1],
+                                              skeleton_pose_models[1])
+    print(train_skeleton_information.head())
+
 
 
 def main():
