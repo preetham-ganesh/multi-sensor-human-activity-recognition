@@ -7,18 +7,22 @@ import numpy as np
 import pandas as pd
 import itertools
 import logging
+import sklearn.pipeline
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import balanced_accuracy_score
 from sklearn.metrics import precision_score
 from sklearn.metrics import recall_score
 from sklearn.metrics import f1_score
+from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.utils import shuffle
 from sklearn.model_selection import ParameterGrid
+from collections import Counter
 from skeleton_points_extraction import choose_caffe_model_files
 
 
@@ -155,10 +159,6 @@ def retrieve_hyperparameters(current_model_name: str):
     if current_model_name == 'logistic_regression':
         parameters = {'penalty': ['l1', 'l2', 'elasticnet', 'none']}
 
-    # For gaussian_naive_bayes, none of the hyperparameters are tuned.
-    elif current_model_name == 'gaussian_naive_bayes':
-        parameters = {'None': ['None']}
-
     # For support_vector_classifier, the hyperparameter tuned is kernel.
     elif current_model_name == 'support_vector_classifier':
         parameters = {'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
@@ -174,9 +174,13 @@ def retrieve_hyperparameters(current_model_name: str):
                       'max_depth': [2, 3, 4, 5, 6, 7]}
 
     # For gradient_boosting_classifier, the hyperparameters tuned are loss, n_estimators, criterion, and max_depth.
-    else:
+    elif current_model_name == 'gradient_boosting_classifier':
         parameters = {'loss': ['deviance', 'exponential'], 'n_estimators': [i * 10 for i in range(2, 11, 2)],
                       'criterion': ['friedman_mse', 'squared_error', 'mse', 'mae'], 'max_depth': [2, 3, 4, 5, 6, 7]}
+
+    # For gaussian_naive_bayes, none of the hyperparameters are tuned.
+    else:
+        parameters = {'None': ['None']}
 
     return parameters
 
@@ -190,16 +194,56 @@ def split_data_input_target(skeleton_data: pd.DataFrame):
         Returns:
             A tuple containing 2 numpy ndarrays for the input and target datasets.
     """
-    skeleton_data_input = skeleton_data.drop(columns=['frame', 'data_name', 'action'])
+    skeleton_data_input = skeleton_data.drop(columns=['data_name', 'action'])
     skeleton_data_target = skeleton_data['action']
     return np.array(skeleton_data_input), np.array(skeleton_data_target)
 
 
-def model_training_testing(n_actions: int,
-                           n_subjects: int,
-                           n_takes: int,
-                           skeleton_pose_models: list,
-                           modalities: list):
+def per_video_model_testing(test_skeleton_information: pd.DataFrame,
+                            current_model: sklearn):
+    """Tests performance of the currently trained model on the validation or testing sets, where the performance is
+    evaluated per video / file, instead of evaluating per frame.
+
+        Args:
+            test_skeleton_information: Pandas dataframe which contains skeleton point information for all actions,
+                                       subject_ids, and takes in the validation or testing sets.
+            current_model: Scikit-learn model that is currently being trained and tested.
+
+        Returns:
+            A tuple contains the target and predicted action for each video in the validation / testing set.
+    """
+    # Identifies unique data_names in the validation / testing set.
+    test_data_names = np.unique(test_skeleton_information['data_name'])
+    test_target_data = []
+    test_predicted_data = []
+
+    # Iterates across the identified unique data names
+    for i in range(len(test_data_names)):
+
+        # Filters skeleton point information for the current data name.
+        current_data_name_skeleton_information = test_skeleton_information[test_skeleton_information['data_name'] ==
+                                                                           test_data_names[i]]
+
+        # Splits filtered skeleton point information into input and target data.
+        test_skeleton_input_data, test_skeleton_target_data = split_data_input_target(
+            current_data_name_skeleton_information)
+
+        # Predicts labels for each frame in the filtered skeleton point information.
+        test_skeleton_predicted_data = list(current_model.predict(test_skeleton_input_data))
+
+        # Identifies which predicted label has highest count and appends it to the final predicted data. Also, appends
+        # target label to the target data.
+        test_target_data.append(max(current_data_name_skeleton_information['action']))
+        test_predicted_data.append(max(test_skeleton_predicted_data, key=test_skeleton_predicted_data.count))
+
+    return np.array(test_target_data), np.array(test_predicted_data)
+
+
+def per_combination_model_training_testing(n_actions: int,
+                                           n_subjects: int,
+                                           n_takes: int,
+                                           skeleton_pose_models: list,
+                                           modalities: list):
     modality_combinations = list_combinations_generator(modalities)
     train_subject_ids = [i for i in range(1, n_subjects - 1)]
     validation_subject_ids = [n_subjects - 1]
@@ -225,14 +269,94 @@ def model_training_testing(n_actions: int,
     print(calculate_metrics(test_skeleton_target_data, test_skeleton_predicted_data))
     print(validation_skeleton_predicted_data)
     print(validation_skeleton_target_data)"""
-    train_skeleton_information = data_combiner(n_actions, train_subject_ids, n_takes, modality_combinations[-1],
-                                               skeleton_pose_models[1])
+    #train_skeleton_information = data_combiner(n_actions, train_subject_ids, n_takes, modality_combinations[-1],
+    #                                           skeleton_pose_models[1])
+    #validation_skeleton_information = data_combiner(n_actions, validation_subject_ids, n_takes,
+    #                                                modality_combinations[-1], skeleton_pose_models[1])
+    #test_skeleton_information = data_combiner(n_actions, test_subject_ids, n_takes, modality_combinations[-1],
+    #                                          skeleton_pose_models[1])
+    train_skeleton_information = data_combiner(n_actions, train_subject_ids, n_takes, modality_combinations[5],
+                                               skeleton_pose_models[0])
+    test_skeleton_information = data_combiner(n_actions, test_subject_ids, n_takes, modality_combinations[5],
+                                              skeleton_pose_models[0])
     validation_skeleton_information = data_combiner(n_actions, validation_subject_ids, n_takes,
-                                                    modality_combinations[-1], skeleton_pose_models[1])
-    test_skeleton_information = data_combiner(n_actions, test_subject_ids, n_takes, modality_combinations[-1],
-                                              skeleton_pose_models[1])
-    print(train_skeleton_information.head())
+                                                    modality_combinations[5], skeleton_pose_models[0])
+    train_skeleton_input_data, train_skeleton_target_data = split_data_input_target(train_skeleton_information)
+    validation_skeleton_input_data, validation_skeleton_target_data = split_data_input_target(
+        validation_skeleton_information)
+    test_skeleton_input_data, test_skeleton_target_data = split_data_input_target(test_skeleton_information)
+    model = RandomForestClassifier()
+    model.fit(train_skeleton_input_data, train_skeleton_target_data)
+    train_skeleton_predicted_data = model.predict(train_skeleton_input_data)
+    validation_skeleton_predicted_data = model.predict(validation_skeleton_input_data)
+    test_skeleton_predicted_data = model.predict(test_skeleton_input_data)
+    train_metrics = calculate_metrics(train_skeleton_target_data, train_skeleton_predicted_data)
+    validation_metrics = calculate_metrics(validation_skeleton_target_data, validation_skeleton_predicted_data)
+    test_metrics = calculate_metrics(test_skeleton_target_data, test_skeleton_predicted_data)
+    print(train_metrics)
+    print(validation_metrics)
+    print(test_metrics)
+    print(type(model))
+    model_testing(test_skeleton_information, model)
 
+
+
+def model_training_testing(train_skeleton_information: pd.DataFrame,
+                           validation_skeleton_information: pd.DataFrame,
+                           current_model_name: str,
+                           parameters: dict):
+    if current_model_name == 'logistic_regression':
+        model = LogisticRegression(penalty=parameters['penalty'])
+    elif current_model_name == 'support_vector_classifier':
+        model = SVC(kernel=parameters['kernel'])
+    elif current_model_name == 'decision_tree_classifier':
+        model = DecisionTreeClassifier(criterion=parameters['criterion'], splitter=parameters['splitter'],
+                                       max_depth=parameters['max_depth'])
+    elif current_model_name == 'random_forest_classifier':
+        model = RandomForestClassifier(n_estimators=parameters['n_estimators'], criterion=parameters['criterion'],
+                                       max_depth=parameters['max_depth'])
+    elif current_model_name == 'extra_trees_classifier':
+        model = ExtraTreesClassifier(n_estimators=parameters['n_estimators'], criterion=parameters['criterion'],
+                                     max_depth=parameters['max_depth'])
+    elif current_model_name == 'gradient_boosting_classifier':
+        model = GradientBoostingClassifier(loss=parameters['loss'], n_estimators=parameters['n_estimators'],
+                                           criterion=parameters['criterion'], max_depth=parameters['max_depth'])
+    else:
+        model = GaussianNB()
+
+    train_skeleton_input_data, train_skeleton_target_data = split_data_input_target(train_skeleton_information)
+    validation_skeleton_input_data, validation_skeleton_target_data = split_data_input_target(
+        validation_skeleton_information)
+
+    model.fit(train_skeleton_input_data, train_skeleton_target_data)
+    train_skeleton_predicted_data = model.predict(train_skeleton_input_data)
+    validation_skeleton_predicted_data = model.predict(validation_skeleton_input_data)
+
+    train_metrics = model_testing(train_skeleton_information, model)
+
+
+
+
+def all_combinations_model_training_testing(n_actions: int,
+                                            n_subjects: int,
+                                            n_takes: int,
+                                            skeleton_pose_models: list,
+                                            modalities: list,
+                                            model_names: list):
+    modality_combinations = list_combinations_generator(modalities)
+    train_subject_ids = [i for i in range(1, n_subjects - 1)]
+    validation_subject_ids = [n_subjects - 1]
+    test_subject_ids = [n_subjects]
+    per_combination_model_training_testing(n_actions, n_subjects, n_takes, skeleton_pose_models, modalities)
+    """for i in range(len(modality_combinations)):
+        for j in range(len(skeleton_pose_models)):
+            train_skeleton_information = data_combiner(n_actions, train_subject_ids, n_takes, modality_combinations[i],
+                                                       skeleton_pose_models[j])
+            validation_skeleton_information = data_combiner(n_actions, validation_subject_ids, n_takes,
+                                                            modality_combinations[i], skeleton_pose_models[j])
+            test_skeleton_information = data_combiner(n_actions, test_subject_ids, n_takes, modality_combinations[i],
+                                                      skeleton_pose_models[j])
+            print(modality_combinations[i], skeleton_pose_models[j])"""
 
 
 def main():
@@ -242,7 +366,11 @@ def main():
     n_takes = 4
     skeleton_pose_models = ['coco', 'mpi']
     modalities = ['rgb', 'depth', 'inertial']
-    model_training_testing(n_actions, n_subjects, n_takes, skeleton_pose_models, modalities)
+    model_names = ['logistic_regression', 'gaussian_naive_bayes', 'support_vector_classifier',
+                   'decision_tree_classifier', 'random_forest_classifier', 'extra_trees_classifier',
+                   'gradient_boosting_classifier']
+    all_combinations_model_training_testing(n_actions, n_subjects, n_takes, skeleton_pose_models, modalities,
+                                            model_names)
 
 
 if __name__ == '__main__':
