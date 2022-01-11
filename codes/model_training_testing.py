@@ -4,6 +4,7 @@
 
 
 import numpy as np
+import os
 import pandas as pd
 import itertools
 import logging
@@ -296,6 +297,27 @@ def model_training_testing(train_skeleton_information: pd.DataFrame,
     return model, train_metrics, validation_metrics
 
 
+def per_combination_results_export(combination_name: str,
+                                   data_split: str,
+                                   metrics_dataframe: pd.DataFrame):
+    """Exports the metrics_dataframe into a CSV format to the mentioned data_split folder. If the folder does not exist,
+    then the folder is created.
+
+        Args:
+            combination_name: Name of the current combination of modalities and skeleton pose model.
+            data_split: Name of the split the subset of the dataset belongs to.
+            metrics_dataframe: A dataframe containing the mean of all the metrics for all the hyperparameters & models.
+
+        Returns:
+            None.
+    """
+    directory_path = '{}/{}'.format('../results/combination_results', combination_name)
+    if not os.path.isdir(directory_path):
+        os.mkdir(directory_path)
+    file_path = '{}/{}'.format(directory_path, data_split)
+    metrics_dataframe.to_csv(file_path, index=False)
+
+
 def per_combination_model_training_testing(n_actions: int,
                                            n_subjects: int,
                                            n_takes: int,
@@ -305,6 +327,13 @@ def per_combination_model_training_testing(n_actions: int,
     train_subject_ids = [i for i in range(1, n_subjects - 1)]
     validation_subject_ids = [n_subjects - 1]
     test_subject_ids = [n_subjects]
+    for i in range(1):
+        for j in range(len(skeleton_pose_models)):
+            combination_name = '_'.join(modality_combinations[i] + [skeleton_pose_models[j]])
+            directory_path = '{}/{}'.format('../results/combination_results', combination_name)
+            if not os.path.isdir(directory_path):
+                os.mkdir(directory_path)
+
     """train_skeleton_input_data, train_skeleton_target_data = data_combiner(n_actions, train_subject_ids, n_takes,
                                                                           modality_combinations[0],
                                                                           skeleton_pose_models[0])
@@ -332,7 +361,7 @@ def per_combination_model_training_testing(n_actions: int,
     #                                                modality_combinations[-1], skeleton_pose_models[1])
     #test_skeleton_information = data_combiner(n_actions, test_subject_ids, n_takes, modality_combinations[-1],
     #                                          skeleton_pose_models[1])
-    train_skeleton_information = data_combiner(n_actions, train_subject_ids, n_takes, modality_combinations[5],
+    """train_skeleton_information = data_combiner(n_actions, train_subject_ids, n_takes, modality_combinations[5],
                                                skeleton_pose_models[0])
     test_skeleton_information = data_combiner(n_actions, test_subject_ids, n_takes, modality_combinations[5],
                                               skeleton_pose_models[0])
@@ -353,8 +382,8 @@ def per_combination_model_training_testing(n_actions: int,
     print(train_metrics)
     print(validation_metrics)
     print(test_metrics)
-    print(type(model))
-    model_testing(test_skeleton_information, model)
+    print(type(model))"""
+    #model_testing(test_skeleton_information, model)
 
 
 
@@ -373,6 +402,10 @@ def all_combinations_model_training_testing(n_actions: int,
     train_subject_ids = [i for i in range(1, n_subjects - 1)]
     validation_subject_ids = [n_subjects - 1]
     test_subject_ids = [n_subjects]
+    for i in range(1):
+        for j in range(len(skeleton_pose_models)):
+            combination_name = '_'.join(modality_combinations[i] + [skeleton_pose_models[j]])
+
     per_combination_model_training_testing(n_actions, n_subjects, n_takes, skeleton_pose_models, modalities)
     """for i in range(len(modality_combinations)):
         for j in range(len(skeleton_pose_models)):
