@@ -242,6 +242,7 @@ def video_based_model_testing(test_skeleton_information: pd.DataFrame,
 
 def model_training_testing(train_skeleton_information: pd.DataFrame,
                            validation_skeleton_information: pd.DataFrame,
+                           test_skeleton_information: pd.DataFrame,
                            current_model_name: str,
                            parameters: dict):
     """Trains and validates model for the current model name and hyperparameters on the train_skeleton_informaiton and
@@ -252,11 +253,13 @@ def model_training_testing(train_skeleton_information: pd.DataFrame,
                                         subject_ids, and takes in the Training set.
             validation_skeleton_information: Pandas dataframe which contains skeleton point information for all actions,
                                              subject_ids, and takes in the Validation set.
+            test_skeleton_information: Pandas dataframe which contains skeleton point information for all actions,
+                                       subject_ids, and takes in the Test set.
             current_model_name: Name of the model currently expected to be trained.
             parameters: Current parameter values used for training and validating the model.
 
         Returns:
-            A tuple which contains the trained model, training metrics, and validation metrics.
+            A tuple which contains the trained model, training metrics, validation metrics, & test metrics.
     """
     # Based on the current_model_name, the scikit-learn object is initialized using the hyperparameter (if necessary)
     if current_model_name == 'logistic_regression':
@@ -289,12 +292,14 @@ def model_training_testing(train_skeleton_information: pd.DataFrame,
                                                                                           model)
     validation_skeleton_target_data, validation_skeleton_predicted_data = video_based_model_testing(
         validation_skeleton_information, model)
+    test_skeleton_target_data, test_skeleton_predicted_data = video_based_model_testing(test_skeleton_information, model)
 
     # Calculates metrics for the predicted action labels for the training and testing sets.
     train_metrics = calculate_metrics(train_skeleton_target_data, train_skeleton_predicted_data)
     validation_metrics = calculate_metrics(validation_skeleton_target_data, validation_skeleton_predicted_data)
+    test_metrics = calculate_metrics(test_skeleton_target_data, test_skeleton_predicted_data)
 
-    return model, train_metrics, validation_metrics
+    return model, train_metrics, validation_metrics, test_metrics
 
 
 def per_combination_results_export(combination_name: str,
@@ -318,78 +323,57 @@ def per_combination_results_export(combination_name: str,
     metrics_dataframe.to_csv(file_path, index=False)
 
 
-def per_combination_model_training_testing(n_actions: int,
-                                           n_subjects: int,
+def appends_parameter_metrics_combination(current_model_name: str,
+                                          current_parameter_combination: dict,
+                                          current_split_metrics: dict,
+                                          split_metrics_dataframe: pd.DataFrame):
+    """Appends the metrics for the current model and current parameter combination to the main dataframe.
+
+        Args:
+            current_model_name: Name of the model currently being trained.
+            current_parameter_combination: Current combination of parameters used for training the model.
+            current_split_metrics: Metrics for the current parameter combination for the model.
+            split_metrics_dataframe: Pandas dataframe which contains metrics for the current combination of modalities.
+
+        Returns:
+            Updated version of the pandas dataframe which contains metrics for the current combination of modalities.
+    """
+    current_split_metrics['model_names'] = current_model_name
+    current_split_metrics['parameters'] = ', '.join(['{}={}'.format(i, current_parameter_combination[i]) for i in
+                                                     current_parameter_combination.keys()])
+    split_metrics_dataframe = split_metrics_dataframe.append(current_split_metrics)
+    return split_metrics_dataframe
+
+
+def per_combination_model_training_testing(train_subject_ids: list,
+                                           validation_subject_ids: list,
+                                           test_subject_ids: list,
+                                           n_actions: int,
                                            n_takes: int,
-                                           skeleton_pose_models: list,
-                                           modalities: list):
-    modality_combinations = list_combinations_generator(modalities)
-    train_subject_ids = [i for i in range(1, n_subjects - 1)]
-    validation_subject_ids = [n_subjects - 1]
-    test_subject_ids = [n_subjects]
-    for i in range(1):
-        for j in range(len(skeleton_pose_models)):
-            combination_name = '_'.join(modality_combinations[i] + [skeleton_pose_models[j]])
-            directory_path = '{}/{}'.format('../results/combination_results', combination_name)
-            if not os.path.isdir(directory_path):
-                os.mkdir(directory_path)
-
-    """train_skeleton_input_data, train_skeleton_target_data = data_combiner(n_actions, train_subject_ids, n_takes,
-                                                                          modality_combinations[0],
-                                                                          skeleton_pose_models[0])
-    validation_skeleton_input_data, validation_skeleton_target_data = data_combiner(n_actions, validation_subject_ids,
-                                                                                    n_takes, modality_combinations[0],
-                                                                                    skeleton_pose_models[0])
-    test_skeleton_input_data, test_skeleton_target_data = data_combiner(n_actions, test_subject_ids, n_takes,
-                                                                        modality_combinations[0],
-                                                                        skeleton_pose_models[0])
-    print(train_skeleton_input_data.shape, train_skeleton_target_data.shape, validation_skeleton_input_data.shape,
-          validation_skeleton_target_data.shape, test_skeleton_input_data.shape, test_skeleton_target_data.shape)
-    model = DecisionTreeClassifier()
-    model.fit(train_skeleton_input_data, train_skeleton_target_data)
-    train_skeleton_predicted_data = model.predict(train_skeleton_input_data)
-    validation_skeleton_predicted_data = model.predict(validation_skeleton_input_data)
-    test_skeleton_predicted_data = model.predict(test_skeleton_input_data)
-    print(calculate_metrics(train_skeleton_target_data, train_skeleton_predicted_data))
-    print(calculate_metrics(validation_skeleton_target_data, validation_skeleton_predicted_data))
-    print(calculate_metrics(test_skeleton_target_data, test_skeleton_predicted_data))
-    print(validation_skeleton_predicted_data)
-    print(validation_skeleton_target_data)"""
-    #train_skeleton_information = data_combiner(n_actions, train_subject_ids, n_takes, modality_combinations[-1],
-    #                                           skeleton_pose_models[1])
-    #validation_skeleton_information = data_combiner(n_actions, validation_subject_ids, n_takes,
-    #                                                modality_combinations[-1], skeleton_pose_models[1])
-    #test_skeleton_information = data_combiner(n_actions, test_subject_ids, n_takes, modality_combinations[-1],
-    #                                          skeleton_pose_models[1])
-    """train_skeleton_information = data_combiner(n_actions, train_subject_ids, n_takes, modality_combinations[5],
-                                               skeleton_pose_models[0])
-    test_skeleton_information = data_combiner(n_actions, test_subject_ids, n_takes, modality_combinations[5],
-                                              skeleton_pose_models[0])
+                                           current_combination_modalities: list,
+                                           skeleton_pose_model: str,
+                                           model_names: list):
+    train_skeleton_information = data_combiner(n_actions, train_subject_ids, n_takes, current_combination_modalities,
+                                               skeleton_pose_model)
     validation_skeleton_information = data_combiner(n_actions, validation_subject_ids, n_takes,
-                                                    modality_combinations[5], skeleton_pose_models[0])
-    train_skeleton_input_data, train_skeleton_target_data = split_data_input_target(train_skeleton_information)
-    validation_skeleton_input_data, validation_skeleton_target_data = split_data_input_target(
-        validation_skeleton_information)
-    test_skeleton_input_data, test_skeleton_target_data = split_data_input_target(test_skeleton_information)
-    model = RandomForestClassifier()
-    model.fit(train_skeleton_input_data, train_skeleton_target_data)
-    train_skeleton_predicted_data = model.predict(train_skeleton_input_data)
-    validation_skeleton_predicted_data = model.predict(validation_skeleton_input_data)
-    test_skeleton_predicted_data = model.predict(test_skeleton_input_data)
-    train_metrics = calculate_metrics(train_skeleton_target_data, train_skeleton_predicted_data)
-    validation_metrics = calculate_metrics(validation_skeleton_target_data, validation_skeleton_predicted_data)
-    test_metrics = calculate_metrics(test_skeleton_target_data, test_skeleton_predicted_data)
-    print(train_metrics)
-    print(validation_metrics)
-    print(test_metrics)
-    print(type(model))"""
-    #model_testing(test_skeleton_information, model)
+                                                    current_combination_modalities, skeleton_pose_model)
+    test_skeleton_information = data_combiner(n_actions, test_subject_ids, n_takes, current_combination_modalities,
+                                              skeleton_pose_model)
+    metrics_features = ['accuracy_score', 'balanced_accuracy_score', 'precision_score', 'recall_score', 'f1_score']
+    train_models_parameters_metrics = pd.DataFrame(columns=['model_names', 'parameters'] + metrics_features)
+    validation_models_parameters_metrics = pd.DataFrame(columns=['model_names', 'parameters'] + metrics_features)
+    test_models_parameters_metrics = pd.DataFrame(columns=['model_names', 'parameters'] + metrics_features)
 
-
-
-
-
-
+    for i in range(2, 3):
+        parameters = retrieve_hyperparameters(model_names[i])
+        parameters_grid = ParameterGrid(parameters)
+        for j in range(len()):
+            print(model_names[i], parameters_grid[j])
+            print(', '.join(['{}={}'.format(k, parameters_grid[j][k]) for k in parameters_grid[j].keys()]))
+            #current_model, training_metrics, validation_metrics, test_metrics = model_training_testing(
+            #    train_skeleton_information, validation_skeleton_information, test_skeleton_information, model_names[i],
+            #    parameters_grid[j])
+            #train_models_parameters_metrics = train_models_parameters_metrics.append()
 
 
 def all_combinations_model_training_testing(n_actions: int,
@@ -404,9 +388,10 @@ def all_combinations_model_training_testing(n_actions: int,
     test_subject_ids = [n_subjects]
     for i in range(1):
         for j in range(len(skeleton_pose_models)):
-            combination_name = '_'.join(modality_combinations[i] + [skeleton_pose_models[j]])
+            per_combination_model_training_testing(train_subject_ids, validation_subject_ids, test_subject_ids,
+                                                   n_actions, n_takes, modality_combinations[i],
+                                                   skeleton_pose_models[j], model_names)
 
-    per_combination_model_training_testing(n_actions, n_subjects, n_takes, skeleton_pose_models, modalities)
     """for i in range(len(modality_combinations)):
         for j in range(len(skeleton_pose_models)):
             train_skeleton_information = data_combiner(n_actions, train_subject_ids, n_takes, modality_combinations[i],
