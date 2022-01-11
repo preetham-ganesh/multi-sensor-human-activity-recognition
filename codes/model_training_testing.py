@@ -199,8 +199,8 @@ def split_data_input_target(skeleton_data: pd.DataFrame):
     return np.array(skeleton_data_input), np.array(skeleton_data_target)
 
 
-def per_video_model_testing(test_skeleton_information: pd.DataFrame,
-                            current_model: sklearn):
+def video_based_model_testing(test_skeleton_information: pd.DataFrame,
+                              current_model: sklearn):
     """Tests performance of the currently trained model on the validation or testing sets, where the performance is
     evaluated per video / file, instead of evaluating per frame.
 
@@ -237,6 +237,63 @@ def per_video_model_testing(test_skeleton_information: pd.DataFrame,
         test_predicted_data.append(max(test_skeleton_predicted_data, key=test_skeleton_predicted_data.count))
 
     return np.array(test_target_data), np.array(test_predicted_data)
+
+
+def model_training_testing(train_skeleton_information: pd.DataFrame,
+                           validation_skeleton_information: pd.DataFrame,
+                           current_model_name: str,
+                           parameters: dict):
+    """Trains and validates model for the current model name and hyperparameters on the train_skeleton_informaiton and
+    validation_skeleton_information.
+
+        Args:
+            train_skeleton_information: Pandas dataframe which contains skeleton point information for all actions,
+                                        subject_ids, and takes in the Training set.
+            validation_skeleton_information: Pandas dataframe which contains skeleton point information for all actions,
+                                             subject_ids, and takes in the Validation set.
+            current_model_name: Name of the model currently expected to be trained.
+            parameters: Current parameter values used for training and validating the model.
+
+        Returns:
+            A tuple which contains the trained model, training metrics, and validation metrics.
+    """
+    # Based on the current_model_name, the scikit-learn object is initialized using the hyperparameter (if necessary)
+    if current_model_name == 'logistic_regression':
+        model = LogisticRegression(penalty=parameters['penalty'])
+    elif current_model_name == 'support_vector_classifier':
+        model = SVC(kernel=parameters['kernel'])
+    elif current_model_name == 'decision_tree_classifier':
+        model = DecisionTreeClassifier(criterion=parameters['criterion'], splitter=parameters['splitter'],
+                                       max_depth=parameters['max_depth'])
+    elif current_model_name == 'random_forest_classifier':
+        model = RandomForestClassifier(n_estimators=parameters['n_estimators'], criterion=parameters['criterion'],
+                                       max_depth=parameters['max_depth'])
+    elif current_model_name == 'extra_trees_classifier':
+        model = ExtraTreesClassifier(n_estimators=parameters['n_estimators'], criterion=parameters['criterion'],
+                                     max_depth=parameters['max_depth'])
+    elif current_model_name == 'gradient_boosting_classifier':
+        model = GradientBoostingClassifier(loss=parameters['loss'], n_estimators=parameters['n_estimators'],
+                                           criterion=parameters['criterion'], max_depth=parameters['max_depth'])
+    else:
+        model = GaussianNB()
+
+    # Splits Training skeleton information into input and target data.
+    train_skeleton_input_data, train_skeleton_target_data = split_data_input_target(train_skeleton_information)
+
+    # Trains the object created for the model using the training input and target.
+    model.fit(train_skeleton_input_data, train_skeleton_target_data)
+
+    # Predict video based action labels for training and validation skeleton information data.
+    train_skeleton_target_data, train_skeleton_predicted_data = video_based_model_testing(train_skeleton_information,
+                                                                                          model)
+    validation_skeleton_target_data, validation_skeleton_predicted_data = video_based_model_testing(
+        validation_skeleton_information, model)
+
+    # Calculates metrics for the predicted action labels for the training and testing sets.
+    train_metrics = calculate_metrics(train_skeleton_target_data, train_skeleton_predicted_data)
+    validation_metrics = calculate_metrics(validation_skeleton_target_data, validation_skeleton_predicted_data)
+
+    return model, train_metrics, validation_metrics
 
 
 def per_combination_model_training_testing(n_actions: int,
@@ -301,38 +358,7 @@ def per_combination_model_training_testing(n_actions: int,
 
 
 
-def model_training_testing(train_skeleton_information: pd.DataFrame,
-                           validation_skeleton_information: pd.DataFrame,
-                           current_model_name: str,
-                           parameters: dict):
-    if current_model_name == 'logistic_regression':
-        model = LogisticRegression(penalty=parameters['penalty'])
-    elif current_model_name == 'support_vector_classifier':
-        model = SVC(kernel=parameters['kernel'])
-    elif current_model_name == 'decision_tree_classifier':
-        model = DecisionTreeClassifier(criterion=parameters['criterion'], splitter=parameters['splitter'],
-                                       max_depth=parameters['max_depth'])
-    elif current_model_name == 'random_forest_classifier':
-        model = RandomForestClassifier(n_estimators=parameters['n_estimators'], criterion=parameters['criterion'],
-                                       max_depth=parameters['max_depth'])
-    elif current_model_name == 'extra_trees_classifier':
-        model = ExtraTreesClassifier(n_estimators=parameters['n_estimators'], criterion=parameters['criterion'],
-                                     max_depth=parameters['max_depth'])
-    elif current_model_name == 'gradient_boosting_classifier':
-        model = GradientBoostingClassifier(loss=parameters['loss'], n_estimators=parameters['n_estimators'],
-                                           criterion=parameters['criterion'], max_depth=parameters['max_depth'])
-    else:
-        model = GaussianNB()
 
-    train_skeleton_input_data, train_skeleton_target_data = split_data_input_target(train_skeleton_information)
-    validation_skeleton_input_data, validation_skeleton_target_data = split_data_input_target(
-        validation_skeleton_information)
-
-    model.fit(train_skeleton_input_data, train_skeleton_target_data)
-    train_skeleton_predicted_data = model.predict(train_skeleton_input_data)
-    validation_skeleton_predicted_data = model.predict(validation_skeleton_input_data)
-
-    train_metrics = model_testing(train_skeleton_information, model)
 
 
 
