@@ -21,10 +21,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import GradientBoostingClassifier
-from sklearn.utils import shuffle
 from sklearn.model_selection import ParameterGrid
-from collections import Counter
-from skeleton_points_extraction import choose_caffe_model_files
 
 
 logging.getLogger('sklearn').setLevel(logging.FATAL)
@@ -158,7 +155,7 @@ def retrieve_hyperparameters(current_model_name: str):
     """
     # For logistic_regression, the hyperparameter tuned is penalty.
     if current_model_name == 'logistic_regression':
-        parameters = {'penalty': ['l1', 'l2', 'elasticnet', 'none']}
+        parameters = {'penalty': ['l2', 'none']}
 
     # For support_vector_classifier, the hyperparameter tuned is kernel.
     elif current_model_name == 'support_vector_classifier':
@@ -319,19 +316,19 @@ def per_combination_results_export(combination_name: str,
     directory_path = '{}/{}'.format('../results/combination_results', combination_name)
     if not os.path.isdir(directory_path):
         os.mkdir(directory_path)
-    file_path = '{}/{}'.format(directory_path, data_split)
+    file_path = '{}/{}.csv'.format(directory_path, data_split)
     metrics_dataframe.to_csv(file_path, index=False)
 
 
 def appends_parameter_metrics_combination(current_model_name: str,
-                                          current_parameter_combination: dict,
+                                          current_combination_name: str,
                                           current_split_metrics: dict,
                                           split_metrics_dataframe: pd.DataFrame):
     """Appends the metrics for the current model and current parameter combination to the main dataframe.
 
         Args:
             current_model_name: Name of the model currently being trained.
-            current_parameter_combination: Current combination of parameters used for training the model.
+            current_combination_name: Current combination of parameters used for training the model.
             current_split_metrics: Metrics for the current parameter combination for the model.
             split_metrics_dataframe: Pandas dataframe which contains metrics for the current combination of modalities.
 
@@ -339,9 +336,8 @@ def appends_parameter_metrics_combination(current_model_name: str,
             Updated version of the pandas dataframe which contains metrics for the current combination of modalities.
     """
     current_split_metrics['model_names'] = current_model_name
-    current_split_metrics['parameters'] = ', '.join(['{}={}'.format(i, current_parameter_combination[i]) for i in
-                                                     current_parameter_combination.keys()])
-    split_metrics_dataframe = split_metrics_dataframe.append(current_split_metrics)
+    current_split_metrics['parameters'] = current_combination_name
+    split_metrics_dataframe = split_metrics_dataframe.append(current_split_metrics, ignore_index=True)
     return split_metrics_dataframe
 
 
@@ -353,27 +349,78 @@ def per_combination_model_training_testing(train_subject_ids: list,
                                            current_combination_modalities: list,
                                            skeleton_pose_model: str,
                                            model_names: list):
+    """Combines skeleton point information based on modality combination, and subject id group. Trains, validates, and
+    tests the list of classifier models. Calculates metrics for each data split, model and parameter combination.
+
+        Args:
+            train_subject_ids: List of subject ids in the training set.
+            validation_subject_ids: List of subject ids in the validation set.
+            test_subject_ids: List of subject ids in the testing set.
+            n_actions: Total number of actions in the original dataset.
+            n_takes: Total number of takes in the original dataset.
+            current_combination_modalities: Current combination of modalities which will be used to import and combine
+                                            the dataset.
+            skeleton_pose_model: Name of the model currently used for extracting skeleton model.
+            model_names: List of ML classifier model names which will used creating the objects.
+
+        Returns:
+            None.
+    """
+    # Combines skeleton point information based on modality combination, and subject id group.
     train_skeleton_information = data_combiner(n_actions, train_subject_ids, n_takes, current_combination_modalities,
                                                skeleton_pose_model)
     validation_skeleton_information = data_combiner(n_actions, validation_subject_ids, n_takes,
                                                     current_combination_modalities, skeleton_pose_model)
     test_skeleton_information = data_combiner(n_actions, test_subject_ids, n_takes, current_combination_modalities,
                                               skeleton_pose_model)
+
+    # Creating empty dataframes for the metrics for current modality combination's training, validation, and testing
+    # datasets.
     metrics_features = ['accuracy_score', 'balanced_accuracy_score', 'precision_score', 'recall_score', 'f1_score']
     train_models_parameters_metrics = pd.DataFrame(columns=['model_names', 'parameters'] + metrics_features)
     validation_models_parameters_metrics = pd.DataFrame(columns=['model_names', 'parameters'] + metrics_features)
     test_models_parameters_metrics = pd.DataFrame(columns=['model_names', 'parameters'] + metrics_features)
 
-    for i in range(2, 3):
+    combination_name = '_'.join(current_combination_modalities + [skeleton_pose_model])
+
+    # Iterates across model names and parameter grid for training and testing the classification models.
+    for i in range(len(model_names)):
+
+        # Retrieves parameters and generates parameter combinations.
         parameters = retrieve_hyperparameters(model_names[i])
         parameters_grid = ParameterGrid(parameters)
-        for j in range(len()):
-            print(model_names[i], parameters_grid[j])
-            print(', '.join(['{}={}'.format(k, parameters_grid[j][k]) for k in parameters_grid[j].keys()]))
-            #current_model, training_metrics, validation_metrics, test_metrics = model_training_testing(
-            #    train_skeleton_information, validation_skeleton_information, test_skeleton_information, model_names[i],
-            #    parameters_grid[j])
-            #train_models_parameters_metrics = train_models_parameters_metrics.append()
+
+        for j in range(len(parameters_grid)):
+            current_parameters_grid_name = ', '.join(['{}={}'.format(k, parameters_grid[j][k]) for k in
+                                                      parameters_grid[j].keys()])
+
+            # Performs model training and testing. Also, generates metrics for the data splits.
+            current_model, training_metrics, validation_metrics, test_metrics = model_training_testing(
+                train_skeleton_information, validation_skeleton_information, test_skeleton_information, model_names[i],
+                parameters_grid[j])
+
+            # Appends current modality's train, validation, and test metrics to the main dataframes.
+            train_models_parameters_metrics = appends_parameter_metrics_combination(
+                model_names[i], current_parameters_grid_name, training_metrics, train_models_parameters_metrics)
+            validation_models_parameters_metrics = appends_parameter_metrics_combination(
+                model_names[i], current_parameters_grid_name, validation_metrics, validation_models_parameters_metrics)
+            test_models_parameters_metrics = appends_parameter_metrics_combination(
+                model_names[i], current_parameters_grid_name, test_metrics, test_models_parameters_metrics)
+
+            if model_names[i] != 'gaussian_naive_bayes':
+                print('modality_combination={}, model={}, {} completed successfully.'.format(
+                    combination_name, model_names[i], current_parameters_grid_name))
+            else:
+                print('modality_combination={}, model={} completed successfully.'.format(combination_name,
+                                                                                         model_names[i]))
+
+    # Exports main training, validation and testing metrics into CSV files.
+    per_combination_results_export('_'.join(current_combination_modalities + [skeleton_pose_model]), 'train_metrics',
+                                   train_models_parameters_metrics)
+    per_combination_results_export('_'.join(current_combination_modalities + [skeleton_pose_model]),
+                                   'validation_metrics', validation_models_parameters_metrics)
+    per_combination_results_export('_'.join(current_combination_modalities + [skeleton_pose_model]), 'test_metrics',
+                                   test_models_parameters_metrics)
 
 
 def all_combinations_model_training_testing(n_actions: int,
@@ -391,16 +438,6 @@ def all_combinations_model_training_testing(n_actions: int,
             per_combination_model_training_testing(train_subject_ids, validation_subject_ids, test_subject_ids,
                                                    n_actions, n_takes, modality_combinations[i],
                                                    skeleton_pose_models[j], model_names)
-
-    """for i in range(len(modality_combinations)):
-        for j in range(len(skeleton_pose_models)):
-            train_skeleton_information = data_combiner(n_actions, train_subject_ids, n_takes, modality_combinations[i],
-                                                       skeleton_pose_models[j])
-            validation_skeleton_information = data_combiner(n_actions, validation_subject_ids, n_takes,
-                                                            modality_combinations[i], skeleton_pose_models[j])
-            test_skeleton_information = data_combiner(n_actions, test_subject_ids, n_takes, modality_combinations[i],
-                                                      skeleton_pose_models[j])
-            print(modality_combinations[i], skeleton_pose_models[j])"""
 
 
 def main():
