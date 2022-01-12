@@ -17,7 +17,6 @@ from sklearn.metrics import f1_score
 from sklearn.naive_bayes import GaussianNB
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.svm import SVC
-from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import GradientBoostingClassifier
@@ -153,13 +152,9 @@ def retrieve_hyperparameters(current_model_name: str):
         Returns:
             A dictionary containing the hyperparameter name and the values that will be used to optimize the model
     """
-    # For logistic_regression, the hyperparameter tuned is penalty.
-    if current_model_name == 'logistic_regression':
-        parameters = {'penalty': ['l2', 'none']}
-
     # For support_vector_classifier, the hyperparameter tuned is kernel.
-    elif current_model_name == 'support_vector_classifier':
-        parameters = {'kernel': ['linear', 'poly', 'rbf', 'sigmoid']}
+    if current_model_name == 'support_vector_classifier':
+        parameters = {'kernel': ['linear', 'poly', 'rbf']}
 
     # For decision_tree_classifier, the hyperparameters tuned are criterion, splitter, and max_depth.
     elif current_model_name == 'decision_tree_classifier':
@@ -256,7 +251,7 @@ def model_training_testing(train_skeleton_information: pd.DataFrame,
             parameters: Current parameter values used for training and validating the model.
 
         Returns:
-            A tuple which contains the trained model, training metrics, validation metrics, & test metrics.
+            A tuple which contains the training metrics, validation metrics, & test metrics.
     """
     # Based on the current_model_name, the scikit-learn object is initialized using the hyperparameter (if necessary)
     if current_model_name == 'logistic_regression':
@@ -296,7 +291,7 @@ def model_training_testing(train_skeleton_information: pd.DataFrame,
     validation_metrics = calculate_metrics(validation_skeleton_target_data, validation_skeleton_predicted_data)
     test_metrics = calculate_metrics(test_skeleton_target_data, test_skeleton_predicted_data)
 
-    return model, train_metrics, validation_metrics, test_metrics
+    return train_metrics, validation_metrics, test_metrics
 
 
 def per_combination_results_export(combination_name: str,
@@ -395,7 +390,7 @@ def per_combination_model_training_testing(train_subject_ids: list,
                                                       parameters_grid[j].keys()])
 
             # Performs model training and testing. Also, generates metrics for the data splits.
-            current_model, training_metrics, validation_metrics, test_metrics = model_training_testing(
+            training_metrics, validation_metrics, test_metrics = model_training_testing(
                 train_skeleton_information, validation_skeleton_information, test_skeleton_information, model_names[i],
                 parameters_grid[j])
 
@@ -423,12 +418,15 @@ def per_combination_model_training_testing(train_subject_ids: list,
                                    test_models_parameters_metrics)
 
 
-def all_combinations_model_training_testing(n_actions: int,
-                                            n_subjects: int,
-                                            n_takes: int,
-                                            skeleton_pose_models: list,
-                                            modalities: list,
-                                            model_names: list):
+def main():
+    print()
+    n_actions = 27
+    n_subjects = 8
+    n_takes = 4
+    skeleton_pose_models = ['coco', 'mpi']
+    modalities = ['rgb', 'depth', 'inertial']
+    model_names = ['gaussian_naive_bayes', 'support_vector_classifier', 'decision_tree_classifier',
+                   'random_forest_classifier', 'extra_trees_classifier', 'gradient_boosting_classifier']
     modality_combinations = list_combinations_generator(modalities)
     train_subject_ids = [i for i in range(1, n_subjects - 1)]
     validation_subject_ids = [n_subjects - 1]
@@ -438,20 +436,7 @@ def all_combinations_model_training_testing(n_actions: int,
             per_combination_model_training_testing(train_subject_ids, validation_subject_ids, test_subject_ids,
                                                    n_actions, n_takes, modality_combinations[i],
                                                    skeleton_pose_models[j], model_names)
-
-
-def main():
-    print()
-    n_actions = 27
-    n_subjects = 8
-    n_takes = 4
-    skeleton_pose_models = ['coco', 'mpi']
-    modalities = ['rgb', 'depth', 'inertial']
-    model_names = ['logistic_regression', 'gaussian_naive_bayes', 'support_vector_classifier',
-                   'decision_tree_classifier', 'random_forest_classifier', 'extra_trees_classifier',
-                   'gradient_boosting_classifier']
-    all_combinations_model_training_testing(n_actions, n_subjects, n_takes, skeleton_pose_models, modalities,
-                                            model_names)
+            print()
 
 
 if __name__ == '__main__':
