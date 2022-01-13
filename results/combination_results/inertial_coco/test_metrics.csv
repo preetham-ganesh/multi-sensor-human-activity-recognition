@@ -1,0 +1,179 @@
+model_names,parameters,accuracy_score,balanced_accuracy_score,precision_score,recall_score,f1_score
+gaussian_naive_bayes,None=None,24.299,25.0,40.362,44.068,31.092
+support_vector_classifier,kernel=linear,24.299,25.0,34.34,36.62,30.128
+support_vector_classifier,kernel=poly,58.879,59.259,61.125,63.636,60.152
+support_vector_classifier,kernel=rbf,65.421,65.741,66.003,70.707,66.765
+decision_tree_classifier,"splitter=best, max_depth=2, criterion=gini",13.084,13.58,22.605,93.333,32.673
+decision_tree_classifier,"splitter=random, max_depth=2, criterion=gini",7.477,7.407,12.128,50.0,18.207
+decision_tree_classifier,"splitter=best, max_depth=3, criterion=gini",13.084,13.889,18.365,51.852,24.75
+decision_tree_classifier,"splitter=random, max_depth=3, criterion=gini",15.888,16.667,15.631,54.839,22.384
+decision_tree_classifier,"splitter=best, max_depth=4, criterion=gini",19.626,20.37,29.782,53.846,34.154
+decision_tree_classifier,"splitter=random, max_depth=4, criterion=gini",19.626,20.37,23.26,53.846,30.441
+decision_tree_classifier,"splitter=best, max_depth=5, criterion=gini",20.561,21.296,35.839,43.137,29.618
+decision_tree_classifier,"splitter=random, max_depth=5, criterion=gini",25.234,25.926,29.777,49.091,34.23
+decision_tree_classifier,"splitter=best, max_depth=6, criterion=gini",24.299,25.0,38.938,38.806,33.708
+decision_tree_classifier,"splitter=random, max_depth=6, criterion=gini",37.383,37.346,48.356,50.633,43.0
+decision_tree_classifier,"splitter=best, max_depth=7, criterion=gini",32.71,33.333,33.972,42.169,34.61
+decision_tree_classifier,"splitter=random, max_depth=7, criterion=gini",36.449,37.037,45.492,44.828,39.98
+decision_tree_classifier,"splitter=best, max_depth=2, criterion=entropy",10.28,11.111,8.345,73.333,14.891
+decision_tree_classifier,"splitter=random, max_depth=2, criterion=entropy",9.346,10.185,8.684,66.667,15.006
+decision_tree_classifier,"splitter=best, max_depth=3, criterion=entropy",13.084,13.889,13.323,60.87,20.476
+decision_tree_classifier,"splitter=random, max_depth=3, criterion=entropy",17.757,18.519,26.294,70.37,34.408
+decision_tree_classifier,"splitter=best, max_depth=4, criterion=entropy",18.692,19.444,21.874,46.512,26.414
+decision_tree_classifier,"splitter=random, max_depth=4, criterion=entropy",17.757,18.519,27.13,54.286,31.804
+decision_tree_classifier,"splitter=best, max_depth=5, criterion=entropy",28.972,29.63,34.18,46.269,35.56
+decision_tree_classifier,"splitter=random, max_depth=5, criterion=entropy",20.561,21.296,28.528,46.809,30.443
+decision_tree_classifier,"splitter=best, max_depth=6, criterion=entropy",29.907,30.556,32.062,35.165,29.192
+decision_tree_classifier,"splitter=random, max_depth=6, criterion=entropy",24.299,25.0,34.638,41.27,32.693
+decision_tree_classifier,"splitter=best, max_depth=7, criterion=entropy",41.121,41.667,46.594,42.718,39.493
+decision_tree_classifier,"splitter=random, max_depth=7, criterion=entropy",35.514,36.111,41.597,45.783,38.235
+random_forest_classifier,"n_estimators=20, max_depth=2, criterion=gini",15.888,16.667,28.442,73.913,30.082
+random_forest_classifier,"n_estimators=40, max_depth=2, criterion=gini",15.888,16.667,36.702,73.913,30.692
+random_forest_classifier,"n_estimators=60, max_depth=2, criterion=gini",14.953,15.741,33.012,84.211,29.056
+random_forest_classifier,"n_estimators=80, max_depth=2, criterion=gini",14.953,15.741,26.965,69.565,23.62
+random_forest_classifier,"n_estimators=100, max_depth=2, criterion=gini",15.888,16.667,32.91,89.474,34.555
+random_forest_classifier,"n_estimators=20, max_depth=3, criterion=gini",18.692,19.444,23.002,42.553,22.711
+random_forest_classifier,"n_estimators=40, max_depth=3, criterion=gini",22.43,23.148,46.073,47.059,34.819
+random_forest_classifier,"n_estimators=60, max_depth=3, criterion=gini",19.626,20.37,36.603,53.846,31.22
+random_forest_classifier,"n_estimators=80, max_depth=3, criterion=gini",25.234,25.926,38.678,49.091,34.652
+random_forest_classifier,"n_estimators=100, max_depth=3, criterion=gini",20.561,21.296,40.799,51.163,34.176
+random_forest_classifier,"n_estimators=20, max_depth=4, criterion=gini",30.841,31.481,40.362,55.932,40.356
+random_forest_classifier,"n_estimators=40, max_depth=4, criterion=gini",33.645,34.259,46.271,57.143,42.057
+random_forest_classifier,"n_estimators=60, max_depth=4, criterion=gini",29.907,30.556,47.859,45.07,37.495
+random_forest_classifier,"n_estimators=80, max_depth=4, criterion=gini",24.299,25.0,34.006,50.98,34.516
+random_forest_classifier,"n_estimators=100, max_depth=4, criterion=gini",28.972,29.63,45.677,52.542,37.519
+random_forest_classifier,"n_estimators=20, max_depth=5, criterion=gini",37.383,37.963,44.607,53.333,44.092
+random_forest_classifier,"n_estimators=40, max_depth=5, criterion=gini",33.645,34.259,43.289,45.57,37.672
+random_forest_classifier,"n_estimators=60, max_depth=5, criterion=gini",42.056,42.593,55.24,56.962,48.358
+random_forest_classifier,"n_estimators=80, max_depth=5, criterion=gini",39.252,39.815,47.094,53.165,43.51
+random_forest_classifier,"n_estimators=100, max_depth=5, criterion=gini",39.252,39.815,48.58,56.0,45.841
+random_forest_classifier,"n_estimators=20, max_depth=6, criterion=gini",47.664,48.148,53.447,58.621,50.656
+random_forest_classifier,"n_estimators=40, max_depth=6, criterion=gini",44.86,45.37,54.159,57.831,49.864
+random_forest_classifier,"n_estimators=60, max_depth=6, criterion=gini",44.86,45.37,49.865,57.831,49.115
+random_forest_classifier,"n_estimators=80, max_depth=6, criterion=gini",44.86,45.37,52.964,52.747,46.701
+random_forest_classifier,"n_estimators=100, max_depth=6, criterion=gini",42.991,43.519,52.186,52.874,45.2
+random_forest_classifier,"n_estimators=20, max_depth=7, criterion=gini",52.336,52.778,56.31,54.369,51.192
+random_forest_classifier,"n_estimators=40, max_depth=7, criterion=gini",56.075,56.481,65.172,63.158,60.253
+random_forest_classifier,"n_estimators=60, max_depth=7, criterion=gini",53.271,53.704,60.333,57.576,54.143
+random_forest_classifier,"n_estimators=80, max_depth=7, criterion=gini",54.206,54.63,60.159,61.053,55.961
+random_forest_classifier,"n_estimators=100, max_depth=7, criterion=gini",56.075,56.481,60.904,60.606,56.557
+random_forest_classifier,"n_estimators=20, max_depth=2, criterion=entropy",14.019,14.815,23.512,48.387,22.658
+random_forest_classifier,"n_estimators=40, max_depth=2, criterion=entropy",15.888,16.667,36.131,54.839,32.187
+random_forest_classifier,"n_estimators=60, max_depth=2, criterion=entropy",15.888,16.667,32.964,54.839,29.177
+random_forest_classifier,"n_estimators=80, max_depth=2, criterion=entropy",16.822,17.593,30.877,58.065,30.415
+random_forest_classifier,"n_estimators=100, max_depth=2, criterion=entropy",16.822,17.593,33.536,58.065,26.97
+random_forest_classifier,"n_estimators=20, max_depth=3, criterion=entropy",22.43,23.148,37.028,55.814,37.256
+random_forest_classifier,"n_estimators=40, max_depth=3, criterion=entropy",25.234,25.926,39.55,52.941,39.056
+random_forest_classifier,"n_estimators=60, max_depth=3, criterion=entropy",21.495,22.222,36.135,45.098,33.566
+random_forest_classifier,"n_estimators=80, max_depth=3, criterion=entropy",27.103,27.778,42.185,61.702,43.137
+random_forest_classifier,"n_estimators=100, max_depth=3, criterion=entropy",22.43,23.148,39.136,51.064,35.495
+random_forest_classifier,"n_estimators=20, max_depth=4, criterion=entropy",31.776,32.407,44.73,50.746,38.846
+random_forest_classifier,"n_estimators=40, max_depth=4, criterion=entropy",31.776,32.407,48.742,45.333,37.291
+random_forest_classifier,"n_estimators=60, max_depth=4, criterion=entropy",31.776,32.407,43.631,50.746,39.37
+random_forest_classifier,"n_estimators=80, max_depth=4, criterion=entropy",35.514,36.111,44.389,53.521,40.227
+random_forest_classifier,"n_estimators=100, max_depth=4, criterion=entropy",32.71,33.333,46.387,49.296,40.113
+random_forest_classifier,"n_estimators=20, max_depth=5, criterion=entropy",41.121,41.667,47.336,53.012,44.129
+random_forest_classifier,"n_estimators=40, max_depth=5, criterion=entropy",35.514,36.111,44.016,48.101,39.202
+random_forest_classifier,"n_estimators=60, max_depth=5, criterion=entropy",39.252,39.815,45.374,53.165,42.539
+random_forest_classifier,"n_estimators=80, max_depth=5, criterion=entropy",35.514,36.111,47.298,48.101,38.376
+random_forest_classifier,"n_estimators=100, max_depth=5, criterion=entropy",35.514,36.111,44.404,48.101,39.483
+random_forest_classifier,"n_estimators=20, max_depth=6, criterion=entropy",44.86,45.37,50.502,57.831,48.801
+random_forest_classifier,"n_estimators=40, max_depth=6, criterion=entropy",44.86,45.37,49.16,52.747,45.157
+random_forest_classifier,"n_estimators=60, max_depth=6, criterion=entropy",47.664,48.148,54.014,53.684,48.536
+random_forest_classifier,"n_estimators=80, max_depth=6, criterion=entropy",43.925,44.444,47.837,49.474,42.965
+random_forest_classifier,"n_estimators=100, max_depth=6, criterion=entropy",42.991,43.519,51.826,50.549,43.517
+random_forest_classifier,"n_estimators=20, max_depth=7, criterion=entropy",50.467,50.926,54.872,59.341,52.555
+random_forest_classifier,"n_estimators=40, max_depth=7, criterion=entropy",49.533,50.0,60.641,53.535,48.439
+random_forest_classifier,"n_estimators=60, max_depth=7, criterion=entropy",49.533,50.0,56.384,55.789,51.229
+random_forest_classifier,"n_estimators=80, max_depth=7, criterion=entropy",48.598,49.074,55.24,54.737,48.521
+random_forest_classifier,"n_estimators=100, max_depth=7, criterion=entropy",52.336,52.778,55.498,56.566,51.039
+extra_trees_classifier,"n_estimators=20, max_depth=2, criterion=gini",17.757,18.519,46.992,82.609,42.915
+extra_trees_classifier,"n_estimators=40, max_depth=2, criterion=gini",14.019,14.815,27.743,65.217,28.163
+extra_trees_classifier,"n_estimators=60, max_depth=2, criterion=gini",16.822,17.593,31.21,78.261,37.774
+extra_trees_classifier,"n_estimators=80, max_depth=2, criterion=gini",14.019,14.815,27.127,55.556,27.7
+extra_trees_classifier,"n_estimators=100, max_depth=2, criterion=gini",14.953,15.741,44.691,69.565,30.706
+extra_trees_classifier,"n_estimators=20, max_depth=3, criterion=gini",23.364,24.074,43.302,71.429,43.444
+extra_trees_classifier,"n_estimators=40, max_depth=3, criterion=gini",22.43,23.148,48.445,88.889,52.289
+extra_trees_classifier,"n_estimators=60, max_depth=3, criterion=gini",24.299,25.0,47.766,74.286,48.791
+extra_trees_classifier,"n_estimators=80, max_depth=3, criterion=gini",24.299,25.0,41.96,83.871,48.302
+extra_trees_classifier,"n_estimators=100, max_depth=3, criterion=gini",23.364,24.074,48.319,71.429,43.297
+extra_trees_classifier,"n_estimators=20, max_depth=4, criterion=gini",28.037,28.704,42.607,63.83,42.403
+extra_trees_classifier,"n_estimators=40, max_depth=4, criterion=gini",25.234,25.926,26.254,62.791,33.804
+extra_trees_classifier,"n_estimators=60, max_depth=4, criterion=gini",30.841,31.481,46.077,70.213,46.286
+extra_trees_classifier,"n_estimators=80, max_depth=4, criterion=gini",25.234,25.926,34.026,69.231,40.728
+extra_trees_classifier,"n_estimators=100, max_depth=4, criterion=gini",30.841,31.481,39.502,70.213,45.537
+extra_trees_classifier,"n_estimators=20, max_depth=5, criterion=gini",30.841,31.481,45.784,64.706,43.917
+extra_trees_classifier,"n_estimators=40, max_depth=5, criterion=gini",29.907,30.556,42.841,54.237,38.053
+extra_trees_classifier,"n_estimators=60, max_depth=5, criterion=gini",35.514,36.111,48.644,64.407,46.68
+extra_trees_classifier,"n_estimators=80, max_depth=5, criterion=gini",33.645,34.259,36.384,61.017,41.885
+extra_trees_classifier,"n_estimators=100, max_depth=5, criterion=gini",31.776,32.407,44.949,57.627,40.837
+extra_trees_classifier,"n_estimators=20, max_depth=6, criterion=gini",35.514,36.111,42.057,56.716,41.967
+extra_trees_classifier,"n_estimators=40, max_depth=6, criterion=gini",41.121,41.667,53.434,61.972,47.954
+extra_trees_classifier,"n_estimators=60, max_depth=6, criterion=gini",34.579,35.185,43.772,58.73,42.907
+extra_trees_classifier,"n_estimators=80, max_depth=6, criterion=gini",35.514,36.111,49.056,64.407,47.411
+extra_trees_classifier,"n_estimators=100, max_depth=6, criterion=gini",40.187,40.741,52.966,60.563,47.855
+extra_trees_classifier,"n_estimators=20, max_depth=7, criterion=gini",45.794,46.296,46.525,62.025,50.053
+extra_trees_classifier,"n_estimators=40, max_depth=7, criterion=gini",42.991,43.519,52.11,58.228,46.949
+extra_trees_classifier,"n_estimators=60, max_depth=7, criterion=gini",47.664,48.148,60.541,58.621,51.481
+extra_trees_classifier,"n_estimators=80, max_depth=7, criterion=gini",42.991,43.519,54.308,64.789,52.076
+extra_trees_classifier,"n_estimators=100, max_depth=7, criterion=gini",42.056,42.593,48.527,56.962,45.395
+extra_trees_classifier,"n_estimators=20, max_depth=2, criterion=entropy",16.822,17.593,39.479,78.261,40.105
+extra_trees_classifier,"n_estimators=40, max_depth=2, criterion=entropy",14.953,15.741,39.349,59.259,31.157
+extra_trees_classifier,"n_estimators=60, max_depth=2, criterion=entropy",17.757,18.519,52.604,70.37,39.658
+extra_trees_classifier,"n_estimators=80, max_depth=2, criterion=entropy",18.692,19.444,43.505,86.957,45.626
+extra_trees_classifier,"n_estimators=100, max_depth=2, criterion=entropy",16.822,17.593,44.848,78.261,35.854
+extra_trees_classifier,"n_estimators=20, max_depth=3, criterion=entropy",23.364,24.074,50.508,71.429,46.827
+extra_trees_classifier,"n_estimators=40, max_depth=3, criterion=entropy",23.364,24.074,51.523,71.429,47.125
+extra_trees_classifier,"n_estimators=60, max_depth=3, criterion=entropy",25.234,25.926,47.411,77.143,48.752
+extra_trees_classifier,"n_estimators=80, max_depth=3, criterion=entropy",20.561,21.296,36.923,70.968,39.75
+extra_trees_classifier,"n_estimators=100, max_depth=3, criterion=entropy",28.037,28.704,49.551,85.714,55.106
+extra_trees_classifier,"n_estimators=20, max_depth=4, criterion=entropy",23.364,24.074,37.95,53.191,33.929
+extra_trees_classifier,"n_estimators=40, max_depth=4, criterion=entropy",25.234,25.926,29.309,69.231,37.389
+extra_trees_classifier,"n_estimators=60, max_depth=4, criterion=entropy",29.907,30.556,42.869,68.085,44.658
+extra_trees_classifier,"n_estimators=80, max_depth=4, criterion=entropy",28.037,28.704,33.533,69.767,41.202
+extra_trees_classifier,"n_estimators=100, max_depth=4, criterion=entropy",27.103,27.778,32.851,67.442,39.617
+extra_trees_classifier,"n_estimators=20, max_depth=5, criterion=entropy",30.841,31.481,36.807,64.706,40.702
+extra_trees_classifier,"n_estimators=40, max_depth=5, criterion=entropy",33.645,34.259,39.412,65.455,44.591
+extra_trees_classifier,"n_estimators=60, max_depth=5, criterion=entropy",29.907,30.556,38.883,68.085,43.215
+extra_trees_classifier,"n_estimators=80, max_depth=5, criterion=entropy",30.841,31.481,44.906,64.706,43.074
+extra_trees_classifier,"n_estimators=100, max_depth=5, criterion=entropy",30.841,31.481,36.763,64.706,42.12
+extra_trees_classifier,"n_estimators=20, max_depth=6, criterion=entropy",33.645,34.259,47.21,53.731,39.039
+extra_trees_classifier,"n_estimators=40, max_depth=6, criterion=entropy",36.449,37.037,46.525,54.93,42.438
+extra_trees_classifier,"n_estimators=60, max_depth=6, criterion=entropy",33.645,34.259,41.199,57.143,40.008
+extra_trees_classifier,"n_estimators=80, max_depth=6, criterion=entropy",36.449,37.037,51.17,54.93,44.449
+extra_trees_classifier,"n_estimators=100, max_depth=6, criterion=entropy",37.383,37.963,46.206,63.492,46.203
+extra_trees_classifier,"n_estimators=20, max_depth=7, criterion=entropy",39.252,39.815,47.164,53.165,42.774
+extra_trees_classifier,"n_estimators=40, max_depth=7, criterion=entropy",42.991,43.519,52.637,52.874,46.117
+extra_trees_classifier,"n_estimators=60, max_depth=7, criterion=entropy",41.121,41.667,53.199,53.012,44.931
+extra_trees_classifier,"n_estimators=80, max_depth=7, criterion=entropy",39.252,39.815,50.954,56.0,45.248
+extra_trees_classifier,"n_estimators=100, max_depth=7, criterion=entropy",42.991,43.519,54.785,61.333,50.673
+gradient_boosting_classifier,"n_estimators=20, max_depth=2",35.514,36.111,45.522,40.0,34.638
+gradient_boosting_classifier,"n_estimators=40, max_depth=2",41.121,41.667,42.098,48.352,40.948
+gradient_boosting_classifier,"n_estimators=60, max_depth=2",47.664,48.148,57.63,53.684,50.01
+gradient_boosting_classifier,"n_estimators=80, max_depth=2",49.533,50.0,60.903,55.789,52.761
+gradient_boosting_classifier,"n_estimators=100, max_depth=2",56.075,56.481,61.915,63.158,59.211
+gradient_boosting_classifier,"n_estimators=20, max_depth=3",47.664,48.148,57.864,51.515,49.312
+gradient_boosting_classifier,"n_estimators=40, max_depth=3",56.075,56.481,55.358,58.252,55.864
+gradient_boosting_classifier,"n_estimators=60, max_depth=3",57.009,57.407,61.246,64.211,61.075
+gradient_boosting_classifier,"n_estimators=80, max_depth=3",59.813,60.185,59.646,64.646,60.817
+gradient_boosting_classifier,"n_estimators=100, max_depth=3",59.813,60.185,57.767,62.136,58.633
+gradient_boosting_classifier,"n_estimators=20, max_depth=4",56.075,56.481,54.808,58.252,54.943
+gradient_boosting_classifier,"n_estimators=40, max_depth=4",59.813,60.185,57.999,64.646,60.077
+gradient_boosting_classifier,"n_estimators=60, max_depth=4",62.617,62.963,60.241,67.677,62.339
+gradient_boosting_classifier,"n_estimators=80, max_depth=4",62.617,62.963,64.521,70.526,66.092
+gradient_boosting_classifier,"n_estimators=100, max_depth=4",64.486,64.815,64.05,69.697,65.485
+gradient_boosting_classifier,"n_estimators=20, max_depth=5",62.617,62.963,61.417,67.677,63.25
+gradient_boosting_classifier,"n_estimators=40, max_depth=5",61.682,62.037,59.8,66.667,61.826
+gradient_boosting_classifier,"n_estimators=60, max_depth=5",63.551,63.889,63.052,68.687,64.424
+gradient_boosting_classifier,"n_estimators=80, max_depth=5",61.682,62.037,61.549,66.667,62.669
+gradient_boosting_classifier,"n_estimators=100, max_depth=5",63.551,63.889,60.895,68.687,63.916
+gradient_boosting_classifier,"n_estimators=20, max_depth=6",64.486,64.815,63.252,69.697,65.137
+gradient_boosting_classifier,"n_estimators=40, max_depth=6",65.421,65.741,63.386,70.707,65.747
+gradient_boosting_classifier,"n_estimators=60, max_depth=6",62.617,62.963,61.818,67.677,63.708
+gradient_boosting_classifier,"n_estimators=80, max_depth=6",64.486,64.815,63.098,69.697,65.257
+gradient_boosting_classifier,"n_estimators=100, max_depth=6",63.551,63.889,64.699,68.687,65.445
+gradient_boosting_classifier,"n_estimators=20, max_depth=7",62.617,62.963,61.669,67.677,63.223
+gradient_boosting_classifier,"n_estimators=40, max_depth=7",64.486,64.815,62.751,69.697,64.718
+gradient_boosting_classifier,"n_estimators=60, max_depth=7",64.486,64.815,60.038,69.697,63.696
+gradient_boosting_classifier,"n_estimators=80, max_depth=7",63.551,63.889,63.805,68.687,65.293
+gradient_boosting_classifier,"n_estimators=100, max_depth=7",64.486,64.815,63.218,69.697,65.689

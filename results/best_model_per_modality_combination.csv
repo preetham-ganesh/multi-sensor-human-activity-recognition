@@ -1,0 +1,15 @@
+modality_combination,skeleton_pose_model,model_names,parameters,accuracy_score,balanced_accuracy_score,precision_score,recall_score,f1_score
+rgb,coco,gradient_boosting_classifier,"n_estimators=100, max_depth=3",53.271,53.70399999999999,57.358000000000004,65.517,57.711000000000006
+rgb,mpi,gradient_boosting_classifier,"n_estimators=100, max_depth=4",52.336000000000006,52.778,57.159,61.538000000000004,57.035
+depth,coco,support_vector_classifier,kernel=rbf,38.318000000000005,38.272,39.534,43.158,38.788000000000004
+depth,mpi,gradient_boosting_classifier,"n_estimators=60, max_depth=3",38.318000000000005,38.58,40.838,41.413999999999994,36.825
+inertial,coco,support_vector_classifier,kernel=rbf,65.421,65.741,66.003,70.707,66.765
+inertial,mpi,support_vector_classifier,kernel=rbf,65.421,65.741,66.003,70.707,66.765
+rgb_depth,coco,gradient_boosting_classifier,"n_estimators=100, max_depth=2",52.336000000000006,52.778,63.536,58.946999999999996,55.373999999999995
+rgb_depth,mpi,gradient_boosting_classifier,"n_estimators=80, max_depth=5",58.879,59.25899999999999,61.658,63.636,60.431999999999995
+rgb_inertial,coco,gradient_boosting_classifier,"n_estimators=100, max_depth=4",64.486,64.815,70.309,69.697,65.223
+rgb_inertial,mpi,gradient_boosting_classifier,"n_estimators=100, max_depth=5",70.093,70.37,76.755,72.816,71.602
+depth_inertial,coco,support_vector_classifier,kernel=poly,57.943999999999996,58.333,60.58,60.193999999999996,56.681999999999995
+depth_inertial,mpi,support_vector_classifier,kernel=poly,52.336000000000006,52.778,59.137,58.946999999999996,53.151
+rgb_depth_inertial,coco,gradient_boosting_classifier,"n_estimators=100, max_depth=3",59.813,60.185,65.695,67.368,62.902
+rgb_depth_inertial,mpi,gradient_boosting_classifier,"n_estimators=100, max_depth=5",64.486,64.815,74.075,72.632,70.376
