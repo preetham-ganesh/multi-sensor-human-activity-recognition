@@ -17,8 +17,8 @@ def per_combination_find_best_model(modalities_combination_name: str,
         Args:
             modalities_combination_name: Name for the current modality combination.
             skeleton_pose_model: Name of the skeleton pose model used for extracting skeleton points from RGB videos.
-            complete_modaltity_combination_metrics: Pandas dataframe which contains the best model for each modality
-                                                    combination.
+            complete_modality_combination_metrics: Pandas dataframe which contains the best model for each modality
+                                                   combination.
             metric_features: List of metrics used for identifying the best model for each modality combination.
 
         Returns:
@@ -37,7 +37,7 @@ def per_combination_find_best_model(modalities_combination_name: str,
         best_model_parameter_metrics_index.append(current_metric_maximum_value_index)
 
     # Identifies the best model based on the maximum count of occurrences in the best_model_parameter_metrics_index.
-    # Appends the identified best model to the complete best model informaiton.
+    # Appends the identified best model to the complete best model information.
     best_model_index = max(best_model_parameter_metrics_index, key=best_model_parameter_metrics_index.count)
     current_combination_best_model = dict(current_modality_combination_metrics.iloc[best_model_index])
     current_combination_best_model['modality_combination'] = modalities_combination_name
@@ -50,16 +50,31 @@ def per_combination_find_best_model(modalities_combination_name: str,
 
 def find_best_model_all_combinations(modalities_combinations: list,
                                      skeleton_pose_models: list):
+    """Finds best model for all the modality combinations and skeleton pose models.
+
+        Args:
+            modalities_combinations: List which contains the combinations for all the modalities in the dataset.
+            skeleton_pose_models: List of all the skeleton pose models which was used to extract the skeleton pose
+                                  information from the RGB videos.
+
+        Returns:
+            None.
+    """
+    # Creating empty dataframe to store best ML model for each modality combination and skeleton pose model.
     metric_features = ['accuracy_score', 'balanced_accuracy_score', 'precision_score', 'recall_score', 'f1_score']
     complete_modality_metrics = pd.DataFrame(columns=['modality_combination', 'skeleton_pose_model',
                                                       'model_names', 'parameters'] + metric_features)
-    for i in range(5):
+
+    # Iterates across modalities combinations and skeleton pose models to find the best ML model and parameters.
+    for i in range(len(modalities_combinations)):
         modalities_combination_name = '_'.join(modalities_combinations[i])
-        print(modalities_combination_name)
         for j in range(len(skeleton_pose_models)):
             complete_modality_metrics = per_combination_find_best_model(modalities_combination_name,
                                                                         skeleton_pose_models[j],
                                                                         complete_modality_metrics, metric_features)
+
+    # Exports dataframe which contains best ML model details for each modality combination and skeleton pose model.
+    complete_modality_metrics.to_csv('../results/best_model_per_modality_combination.csv', index=False)
 
 
 def main():
