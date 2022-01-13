@@ -13,10 +13,10 @@ def choose_caffe_model_files(skeleton_pose_model: str):
     """Returns Caffe model files name based on the given input model name.
 
         Args:
-            skeleton_pose_model: Caffe model name which contains either 'COCO' or 'MPI'.
+            skeleton_pose_model: Caffe model name which is either 'COCO' or 'MPI'.
 
         Returns:
-            A tuple that contains the names for proto & weights files and the number of skeleton points.
+            A tuple which contains the names for proto & weights files and the number of skeleton points.
     """
     if skeleton_pose_model == 'coco':
         proto_file_name = 'pose_deploy_linevec.prototxt'
@@ -38,7 +38,7 @@ def check_directory_existence(directory_path: str,
             directory_path: Current directory path
             sub_directory: Directory that needs to be checked if it exists or not.
 
-        Return:
+        Returns:
             Newly concatenated directory path
     """
     directory_path = '{}/{}'.format(directory_path, sub_directory)
