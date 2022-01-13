@@ -168,8 +168,7 @@ def retrieve_hyperparameters(current_model_name: str):
 
     # For gradient_boosting_classifier, the hyperparameters tuned are loss, n_estimators, criterion, and max_depth.
     elif current_model_name == 'gradient_boosting_classifier':
-        parameters = {'loss': ['deviance', 'exponential'], 'n_estimators': [i * 10 for i in range(2, 11, 2)],
-                      'criterion': ['friedman_mse', 'squared_error', 'mse', 'mae'], 'max_depth': [2, 3, 4, 5, 6, 7]}
+        parameters = {'max_depth': [2, 3, 4, 5, 6, 7], 'n_estimators': [i * 10 for i in range(2, 11, 2)]}
 
     # For gaussian_naive_bayes, none of the hyperparameters are tuned.
     else:
@@ -254,9 +253,7 @@ def model_training_testing(train_skeleton_information: pd.DataFrame,
             A tuple which contains the training metrics, validation metrics, & test metrics.
     """
     # Based on the current_model_name, the scikit-learn object is initialized using the hyperparameter (if necessary)
-    if current_model_name == 'logistic_regression':
-        model = LogisticRegression(penalty=parameters['penalty'])
-    elif current_model_name == 'support_vector_classifier':
+    if current_model_name == 'support_vector_classifier':
         model = SVC(kernel=parameters['kernel'])
     elif current_model_name == 'decision_tree_classifier':
         model = DecisionTreeClassifier(criterion=parameters['criterion'], splitter=parameters['splitter'],
@@ -268,8 +265,7 @@ def model_training_testing(train_skeleton_information: pd.DataFrame,
         model = ExtraTreesClassifier(n_estimators=parameters['n_estimators'], criterion=parameters['criterion'],
                                      max_depth=parameters['max_depth'])
     elif current_model_name == 'gradient_boosting_classifier':
-        model = GradientBoostingClassifier(loss=parameters['loss'], n_estimators=parameters['n_estimators'],
-                                           criterion=parameters['criterion'], max_depth=parameters['max_depth'])
+        model = GradientBoostingClassifier(n_estimators=parameters['n_estimators'], max_depth=parameters['max_depth'])
     else:
         model = GaussianNB()
 
@@ -431,7 +427,7 @@ def main():
     train_subject_ids = [i for i in range(1, n_subjects - 1)]
     validation_subject_ids = [n_subjects - 1]
     test_subject_ids = [n_subjects]
-    for i in range(1):
+    for i in range(len(modality_combinations)):
         for j in range(len(skeleton_pose_models)):
             per_combination_model_training_testing(train_subject_ids, validation_subject_ids, test_subject_ids,
                                                    n_actions, n_takes, modality_combinations[i],
