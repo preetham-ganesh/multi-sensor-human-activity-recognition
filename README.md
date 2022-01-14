@@ -64,9 +64,13 @@ python3 find_best_model_per_combination.py
 
 ### Best ML model for each Modality combination
 
-| Modalities| Skeleton Pose Model | ML Model | Parameters | Accuracy | Balanced Accuracy | Precision | Recall | F1 |
+| Modalities| Skeleton Pose Model | ML Model | Parameters | Accuracy | Precision | Recall | F1 |
 | - | - | - | - | - | - | - | - | - |
-| RGB | COCO | Gradient Boosting | n_estimators=100, max_depth=3 | 53.271 | 53.704 | 57.358 | 65.517 | 57.711 |
+| RGB |	COCO | Gradient Boosting | n_estimators=100, max_depth=3 | 53.271 | 57.358 | 65.517 | 57.711 |
+| RGB | MPI | Gradient Boosting | n_estimators=100, max_depth=4 | 52.336 | 57.159 | 61.538 | 57.035 |
+| Depth | COCO | Support Vector | kernel=rbf | 38.318 | 39.534 | 43.158 | 38.788 |
+| Depth | MPI | Gradient Boosting | n_estimators=60, max_depth=3 | 38.318 | 40.838 | 41.414 | 36.825 |
+| Inertial | COCO | Support Vector | kernel=rbf | 65.421 | 66.003 | 70.707 | 66.765 |
 
 ## Future Work
 
