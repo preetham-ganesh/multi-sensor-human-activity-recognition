@@ -62,6 +62,12 @@ python3 model_training_testing.py
 python3 find_best_model_per_combination.py
 ```
 
+### Best ML model for each Modality combination
+
+| Modalities| Skeleton Pose Model | ML Model | Parameters | Accuracy | Balanced Accuracy | Precision | Recall | F1 |
+| - | - | - | - | - | - | - | - | - |
+| RGB | COCO | Gradient Boosting | n_estimators=100, max_depth=3 | 53.271 | 53.704 | 57.358 | 65.517 | 57.711 |
+
 ## Future Work
 
 ## Support
