@@ -71,6 +71,15 @@ python3 find_best_model_per_combination.py
 | Depth | COCO | Support Vector | kernel=rbf | 38.318 | 39.534 | 43.158 | 38.788 |
 | Depth | MPI | Gradient Boosting | n_estimators=60, max_depth=3 | 38.318 | 40.838 | 41.414 | 36.825 |
 | Inertial | COCO | Support Vector | kernel=rbf | 65.421 | 66.003 | 70.707 | 66.765 |
+| Inertial | MPI | Support Vector | kernel=rbf | 65.421 | 66.003 | 70.707 | 66.765 |
+| RGB, Depth | COCO | Gradient Boosting | n_estimators=100, max_depth=2 | 52.336 | 63.536 | 58.947 | 55.374 |
+| RGB, Depth | MPI | Gradient Boosting | n_estimators=80, max_depth=5 | 58.879 | 61.658 | 63.636 | 60.432 |
+| RGB, Inertial | COCO | Gradient Boosting | n_estimators=100, max_depth=4 | 64.486| 70.309 | 69.697 | 65.223 |
+| RGB, Inertial | MPI | Gradient Boosting | n_estimators=100, max_depth=5 | 70.093 | 76.755 | 72.816 | 71.602 |
+| Depth, Inertial | COCO | Support Vector | kernel=poly | 57.944 | 60.58 | 60.194 | 56.682 |
+| Depth, Inertial | MPI | Support Vector | kernel=poly | 52.336 | 59.137 | 58.947 | 53.151 |
+| RGB, Depth, Inertial | COCO | Gradient Boosting | n_estimators=100, max_depth=3 | 59.813 | 65.695 | 67.368 | 62.902 |
+| RGB, Depth, Inertial | MPI | Gradient Boosting | n_estimators=100, max_depth=5 | 64.486 | 74.075 | 72.632 | 70.376 |
 
 ## Future Work
 
